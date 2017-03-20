@@ -6,7 +6,7 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {ws: null, username: '', create: false};
+    this.state = {ws: null, username: '', lobbyName: '', players: {}, create: false};
 
     this.handleLobby = this.handleLobby.bind(this);
     this.handleNameChange = this.handleNameChange.bind(this);
@@ -18,11 +18,42 @@ class App extends Component {
 
     var socket = io('http://localhost:3000');
     this.setState({ws: socket});
+
+    // either a lobby create or lobby join
     socket.on('connect', function(){
-      socket.send({name: this.state.username});
+      if(this.state.create){
+        socket.send({eventName: 'create', username: this.state.username});
+      } else {
+        socket.send({eventName: 'join', username: this.state.username, lobbyName: this.state.lobbyName});
+      }
     });
-    socket.on('event', function(data){});
-    socket.on('disconnect', function(){});
+
+    /*
+      join: a player joined your lobby
+      vote: a vote from a player, for another player to die
+      kill: a witch casting a kill spell
+      turn: changing from day to night
+    */
+    socket.on('event', function(data){
+      switch(data.eventName){
+        case 'turn':
+          this.state.players.push({username: data.username})
+        break;
+        case 'join':
+          this.state.players[data.username] = {username: data.username, isDead: false, killVote: 0}
+        break;
+        case 'vote':
+          this.state.players[data.username]['killVote'] += 1;
+        break;
+        case 'kill':
+          this.state.players[data.username]['isDead'] = true;
+        break;
+      }
+    });
+
+    socket.on('disconnect', function(){
+
+    });
 
     event.preventDefault();
   }
