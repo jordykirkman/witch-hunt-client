@@ -6,25 +6,38 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {ws: null, username: '', lobbyName: '', players: {}, create: false};
+    this.state = {ws: null, username: '', lobbyName: '', players: {}, playerListElements: [], create: false};
 
-    this.handleLobby = this.handleLobby.bind(this);
-    this.handleNameChange = this.handleNameChange.bind(this);
-    this.toggleCreateLobby = this.toggleCreateLobby.bind(this);
+    this.handleLobby = this.handleLobby.bind(this)
+    this.playerList = this.playerList.bind(this)
+    this.handleNameChange = this.handleNameChange.bind(this)
+    this.toggleCreateLobby = this.toggleCreateLobby.bind(this)
+  }
+
+  playerList(event) {
+    let list = []
+    for(let key in this.state.players){
+      list.push(this.state.players[key])
+    }
+    let elementList = list.map((player)=>{
+      return `<li>${player.username}</li>`
+    })
+    this.setState('playerListElements', elementList);
   }
 
   handleLobby(event) {
+    const self = this
     this.setState({lobbyName: event.target.value});
 
-    var socket = io('http://localhost:3000');
-    this.setState({ws: socket});
+    var socket = io('http://localhost:3000')
+    this.setState({ws: socket})
 
     // either a lobby create or lobby join
     socket.on('connect', function(){
-      if(this.state.create){
-        socket.send({eventName: 'create', username: this.state.username});
+      if(self.state.create){
+        socket.send({eventName: 'create', username: self.state.username})
       } else {
-        socket.send({eventName: 'join', username: this.state.username, lobbyName: this.state.lobbyName});
+        socket.send({eventName: 'join', username: self.state.username, lobbyName: self.state.lobbyName})
       }
     });
 
@@ -35,18 +48,24 @@ class App extends Component {
       turn: changing from day to night
     */
     socket.on('event', function(data){
+      let eventPlayer = self.state.players[data.username];
       switch(data.eventName){
         case 'turn':
-          this.state.players.push({username: data.username})
+          let currentTime = !self.state.day
+          self.setState({dat: currentTime})
         break;
         case 'join':
-          this.state.players[data.username] = {username: data.username, isDead: false, killVote: 0}
+          self.setState({eventPlayer: {username: data.username, isDead: false, killVote: 0}})
         break;
         case 'vote':
-          this.state.players[data.username]['killVote'] += 1;
+          let playerKillVote = eventPlayer['killVote']
+          self.setState({playerKillVote: playerKillVote += 1})
         break;
         case 'kill':
-          this.state.players[data.username]['isDead'] = true;
+          let playerIsDead = eventPlayer['isDead']
+          self.setState({playerIsDead: true})
+        break;
+        default:
         break;
       }
     });
@@ -55,16 +74,16 @@ class App extends Component {
 
     });
 
-    event.preventDefault();
+    event.preventDefault()
   }
 
   toggleCreateLobby(event) {
-    let newState = !this.state.create;
-    this.setState({create: newState});
+    let newState = !this.state.create
+    this.setState({create: newState})
   }
 
   handleNameChange(event) {
-    this.setState({username: event.target.value});
+    this.setState({username: event.target.value})
   }
 
   render() {
@@ -95,7 +114,7 @@ class App extends Component {
           {lobbyField}
           <input type="submit" value="Submit" />
         </form>
-
+        <ul>{this.playerList}</ul>
       </div>
     );
   }
