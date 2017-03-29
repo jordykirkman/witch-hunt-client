@@ -6,40 +6,37 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = {ws: null, username: '', lobbyName: '', players: {}, playerListElements: [], create: false};
+    this.state = {
+      // ws: io('http://localhost:3000'),
+      username: '',
+      lobbyId: '',
+      joinLobbyId: '',
+      players: [],
+      ws: io(),
+      create: true,
+      day: true
+    };
 
     this.handleLobby = this.handleLobby.bind(this)
-    this.playerList = this.playerList.bind(this)
     this.handleNameChange = this.handleNameChange.bind(this)
+    this.handleLobbyName = this.handleLobbyName.bind(this)
     this.toggleCreateLobby = this.toggleCreateLobby.bind(this)
-  }
-
-  playerList(event) {
-    let list = []
-    for(let key in this.state.players){
-      list.push(this.state.players[key])
-    }
-    let elementList = list.map((player)=>{
-      return `<li>${player.username}</li>`
-    })
-    this.setState('playerListElements', elementList);
+    this.handleVote = this.handleVote.bind(this)
+    // this.intro = this.intro.bind(this)
   }
 
   handleLobby(event) {
     const self = this
-    this.setState({lobbyName: event.target.value});
-
-    var socket = io('http://localhost:3000')
-    this.setState({ws: socket})
+    const socket = this.state.ws
+    // this.setState({ws: socket})
 
     // either a lobby create or lobby join
-    socket.on('connect', function(){
-      if(self.state.create){
-        socket.send({eventName: 'create', username: self.state.username})
-      } else {
-        socket.send({eventName: 'join', username: self.state.username, lobbyName: self.state.lobbyName})
-      }
-    });
+    if(self.state.create){
+      socket.emit('create', {username: self.state.username})
+    } else {
+      socket.emit('join', {username: self.state.username, lobbyId: self.state.joinLobbyId})
+      self.setState({lobbyId: self.state.joinLobbyId})
+    }
 
     /*
       join: a player joined your lobby
@@ -47,28 +44,37 @@ class App extends Component {
       kill: a witch casting a kill spell
       turn: changing from day to night
     */
-    socket.on('event', function(data){
-      let eventPlayer = self.state.players[data.username];
-      switch(data.eventName){
-        case 'turn':
-          let currentTime = !self.state.day
-          self.setState({dat: currentTime})
-        break;
-        case 'join':
-          self.setState({eventPlayer: {username: data.username, isDead: false, killVote: 0}})
-        break;
-        case 'vote':
-          let playerKillVote = eventPlayer['killVote']
-          self.setState({playerKillVote: playerKillVote += 1})
-        break;
-        case 'kill':
-          let playerIsDead = eventPlayer['isDead']
-          self.setState({playerIsDead: true})
-        break;
-        default:
-        break;
-      }
-    });
+
+    socket.on('created', function(ioEvent){
+      self.setState({lobbyId: ioEvent.lobbyId})
+    })
+
+    socket.on('joined', function(ioEvent){
+      // let playerArray = self.state.players
+      // playerArray.push({username: ioEvent.username, isDead: false, killVote: 0})
+      self.setState({players: ioEvent.players})
+    })
+
+    socket.on('vote', function(ioEvent){
+      // let playerArray = self.state.players
+      // for(let n = 0; n < playerArray.length; n++){
+      //   if(playerArray[n].username === ioEvent.username){
+      //     playerArray[n].vote += 1
+      //   }
+      // }
+      self.setState({players: ioEvent.players})
+    })
+
+    socket.on('playerUpdate', function(ioEvent){
+      // let playerIsDead = ioEvent.username['isDead']
+      // self.setState({playerIsDead: true})
+      self.setState({players: ioEvent.players})
+    })
+
+    socket.on('turn', function(ioEvent){
+      let currentTime = !self.state.day
+      self.setState({day: currentTime})
+    })
 
     socket.on('disconnect', function(){
 
@@ -86,26 +92,42 @@ class App extends Component {
     this.setState({username: event.target.value})
   }
 
+  handleLobbyName() {
+    this.setState({joinLobbyId: event.target.value})
+  }
+
+  handleVote(event) {
+    console.log(event)
+  }
+
+  // intro(props) {
+  //   console.log(event)
+  // }
+
   render() {
-    let lobbyField = null;
-    if (this.state.create) {
+    let lobbyField = null
+    let self = this
+    if (!this.state.create) {
       lobbyField = <label>
             Lobby Name:
-            <input type="text" value={this.state.username} onChange={this.handleLobbyChange} />
+            <input type="text" value={this.state.joinLobbyId} onChange={this.handleLobbyName} />
           </label>
     }
 
-    return (
-      <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Witch Hunt</h2>
-        </div>
+    let playerCardList = this.state.players.map(function(player){
+      return <UserCard ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} from={self.state.username} />
+    })
 
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <button onClick={this.toggleCreateLobby}>{this.state.create ? 'Create Lobby' : 'Join Lobby'}</button>
+    let dayNight = this.state.day ? "day" : "night"
+
+    let intro = <div>
+      <h2>Game: {this.state.lobbyId}</h2>
+      {dayNight}
+    </div>
+
+    if (this.state.lobbyId === '') {
+      intro = <div>
+        <button onClick={this.toggleCreateLobby}>{this.state.create ? 'Join Lobby' : 'Create Lobby'}</button>
         <form onSubmit={this.handleLobby}>
           <label>
             Name:
@@ -114,68 +136,39 @@ class App extends Component {
           {lobbyField}
           <input type="submit" value="Submit" />
         </form>
-        <ul>{this.playerList}</ul>
+      </div>
+    }
+
+    return (
+      <div className="App">
+        <div className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h2>Witch Hunt</h2>
+        </div>
+        {intro}
+        {playerCardList}
       </div>
     );
   }
 }
 
-/*class JoinLobby extends React.Component {
+
+class UserCard extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = {lobbyName: null, ws: null};
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
+    super(props)
+    this.handleVote = this.handleVote.bind(this)
   }
 
-  handleChange(event) {
-    this.setState({lobbyName: event.target.value});
-  }
-
-  handleSubmit(event) {
-    alert('A name was submitted: ' + this.state.value);
-    event.preventDefault();
+  handleVote(event) {
+    this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
+    // console.log(this.props.username)
   }
 
   render() {
     return (
-      <button onClick={this.handleClick}>
-        {this.state.}
-      </button>
+      <div onClick={this.handleVote}>{this.props.player.username} {this.props.player.killVote} {this.props.player.isDead.toString()}</div>
     );
   }
 }
-
-class NameForm extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {value: ''};
-
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  handleChange(event) {
-    this.setState({value: event.target.value});
-  }
-
-  handleSubmit(event) {
-    alert('A name was submitted: ' + this.state.value);
-    event.preventDefault();
-  }
-
-  render() {
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          Name:
-          <input type="text" value={this.state.value} onChange={this.handleChange} />
-        </label>
-        <input type="submit" value="Submit" />
-      </form>
-    );
-  }*/
-// }
 
 export default App;
