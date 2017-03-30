@@ -7,13 +7,13 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // ws: io('http://localhost:3000'),
       username: '',
       lobbyId: '',
       joinLobbyId: '',
       players: [],
       ws: io(),
       create: true,
+      started: false,
       day: true
     };
 
@@ -21,8 +21,8 @@ class App extends Component {
     this.handleNameChange = this.handleNameChange.bind(this)
     this.handleLobbyName = this.handleLobbyName.bind(this)
     this.toggleCreateLobby = this.toggleCreateLobby.bind(this)
-    this.handleVote = this.handleVote.bind(this)
-    // this.intro = this.intro.bind(this)
+    this.skipVote = this.skipVote.bind(this)
+    this.readyUp = this.readyUp.bind(this)
   }
 
   handleLobby(event) {
@@ -49,31 +49,20 @@ class App extends Component {
       self.setState({lobbyId: ioEvent.lobbyId})
     })
 
-    socket.on('joined', function(ioEvent){
-      // let playerArray = self.state.players
-      // playerArray.push({username: ioEvent.username, isDead: false, killVote: 0})
-      self.setState({players: ioEvent.players})
-    })
-
-    socket.on('vote', function(ioEvent){
-      // let playerArray = self.state.players
-      // for(let n = 0; n < playerArray.length; n++){
-      //   if(playerArray[n].username === ioEvent.username){
-      //     playerArray[n].vote += 1
-      //   }
-      // }
-      self.setState({players: ioEvent.players})
-    })
-
     socket.on('playerUpdate', function(ioEvent){
-      // let playerIsDead = ioEvent.username['isDead']
-      // self.setState({playerIsDead: true})
       self.setState({players: ioEvent.players})
     })
 
-    socket.on('turn', function(ioEvent){
-      let currentTime = !self.state.day
-      self.setState({day: currentTime})
+    socket.on('start', function(){
+      self.setState({started: true})
+    })
+
+    socket.on('day', function(){
+      self.setState({day: true})
+    })
+
+    socket.on('night', function(){
+      self.setState({day: false})
     })
 
     socket.on('disconnect', function(){
@@ -96,13 +85,13 @@ class App extends Component {
     this.setState({joinLobbyId: event.target.value})
   }
 
-  handleVote(event) {
-    console.log(event)
+  skipVote() {
+    this.state.ws.emit('submitVote', {skip: true, lobbyId: this.state.lobbyId, from: this.state.username})
   }
 
-  // intro(props) {
-  //   console.log(event)
-  // }
+  readyUp() {
+    this.state.ws.emit('ready', {lobbyId: this.state.lobbyId})
+  }
 
   render() {
     let lobbyField = null
@@ -115,14 +104,16 @@ class App extends Component {
     }
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} from={self.state.username} />
+      return <UserCard day={self.state.day} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} from={self.state.username} />
     })
 
     let dayNight = this.state.day ? "day" : "night"
 
+    let startGame = this.state.started ? <div><h2>{dayNight}</h2><button onClick={this.skipVote}>Skip Vote</button></div> : <button onClick={this.readyUp}>Start Game</button>
+
     let intro = <div>
       <h2>Game: {this.state.lobbyId}</h2>
-      {dayNight}
+      {startGame}
     </div>
 
     if (this.state.lobbyId === '') {
@@ -152,7 +143,6 @@ class App extends Component {
   }
 }
 
-
 class UserCard extends React.Component {
   constructor(props) {
     super(props)
@@ -160,13 +150,15 @@ class UserCard extends React.Component {
   }
 
   handleVote(event) {
+    if(!this.props.ready || !this.props.day){
+      return
+    }
     this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
-    // console.log(this.props.username)
   }
 
   render() {
     return (
-      <div onClick={this.handleVote}>{this.props.player.username} {this.props.player.killVote} {this.props.player.isDead.toString()}</div>
+      <div onClick={this.handleVote}>{this.props.player.username} {this.props.player.killVote.length.toString()} {this.props.player.isDead.toString()}</div>
     );
   }
 }
