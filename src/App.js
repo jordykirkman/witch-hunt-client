@@ -14,6 +14,7 @@ class App extends Component {
       ws: io(),
       create: true,
       started: false,
+      winner: null,
       day: true
     };
 
@@ -65,6 +66,10 @@ class App extends Component {
       self.setState({day: false})
     })
 
+    socket.on('end', function(ioEvent){
+      self.setState({winner: ioEvent.winner})
+    })
+
     socket.on('disconnect', function(){
 
     });
@@ -96,12 +101,10 @@ class App extends Component {
   render() {
     let lobbyField = null
     let self = this
-    if (!this.state.create) {
-      lobbyField = <label>
-            Lobby Name:
-            <input type="text" value={this.state.joinLobbyId} onChange={this.handleLobbyName} />
-          </label>
-    }
+
+    let skippedPlayers = this.state.players.filter(function(player){
+      return player.skip
+    })
 
     let playerCardList = this.state.players.map(function(player){
       return <UserCard day={self.state.day} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} from={self.state.username} />
@@ -109,35 +112,87 @@ class App extends Component {
 
     let dayNight = this.state.day ? "day" : "night"
 
-    let startGame = this.state.started ? <div><h2>{dayNight}</h2><button onClick={this.skipVote}>Skip Vote</button></div> : <button onClick={this.readyUp}>Start Game</button>
-
-    let intro = <div>
-      <h2>Game: {this.state.lobbyId}</h2>
-      {startGame}
+    let intro = <div className="columns">
+      <div className="column">
+        <h2>Game: {this.state.lobbyId}</h2>
+        {this.state.started &&
+          <div>
+            <h2>{dayNight}</h2>
+            <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>{skippedPlayers.length.toString()}
+          </div>
+        }
+        {!this.state.started &&
+          <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
+        }
+      </div>
     </div>
 
     if (this.state.lobbyId === '') {
       intro = <div>
-        <button onClick={this.toggleCreateLobby}>{this.state.create ? 'Join Lobby' : 'Create Lobby'}</button>
-        <form onSubmit={this.handleLobby}>
-          <label>
-            Name:
-            <input type="text" value={this.state.username} onChange={this.handleNameChange} />
-          </label>
-          {lobbyField}
-          <input type="submit" value="Submit" />
-        </form>
+        <div className="columns is-multiline">
+          <div className="column is-12">
+
+            <div className="tabs is-boxed">
+              <ul>
+                <li className={this.state.create ? 'is-active' : ''}>
+                  <a onClick={this.toggleCreateLobby}>
+                    <span>Create</span>
+                  </a>
+                </li>
+                <li className={!this.state.create ? 'is-active' : ''}>
+                  <a onClick={this.toggleCreateLobby}>
+                    <span>Join</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+          <div className="column is-12">
+            <div className="field">
+              <label className="label">Name</label>
+              <p className="control">
+                <input className="input" type="text" placeholder="Text input" value={this.state.username} onChange={this.handleNameChange}/>
+              </p>
+            </div>
+            {!this.state.create &&
+              <div className="field">
+                <label className="label">Game Name</label>
+                <p className="control">
+                  <input className="input" type="text" placeholder="Text input" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                </p>
+              </div>
+            }
+            <div className="field">
+              <p className="control">
+                <a className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}>Play</a>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+    }
+
+    if (this.state.winner) {
+      intro = <h2>{this.state.winner} win</h2>
     }
 
     return (
       <div className="App">
-        <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Witch Hunt</h2>
-        </div>
-        {intro}
-        {playerCardList}
+        <section className="hero is-medium is-primary is-bold">
+          <div className="hero-body">
+            <div class="container">
+              <img src={logo} className="App-logo" alt="logo" />
+              <h2 className="title">Witch Hunt</h2>
+            </div>
+          </div>
+        </section>
+          <div className="container">
+            {intro}
+            <div className={this.state.day ? 'columns is-multiline is-day' : 'columns is-multiline is-night'}>
+              {playerCardList}
+            </div>
+          </div>
       </div>
     );
   }
@@ -150,7 +205,13 @@ class UserCard extends React.Component {
   }
 
   handleVote(event) {
-    if(!this.props.ready || !this.props.day){
+    // do nothing if the game hasnt started yet
+    if(!this.props.ready){
+      return
+    }
+    // send a kill if it's night and you are a monster
+    if(!this.props.day && this.props.player.username === this.props.from && this.props.player.role === 'witch'){
+      this.props.ws.emit('kill', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
@@ -158,7 +219,19 @@ class UserCard extends React.Component {
 
   render() {
     return (
-      <div onClick={this.handleVote}>{this.props.player.username} {this.props.player.killVote.length.toString()} {this.props.player.isDead.toString()}</div>
+      <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
+        <div className={this.props.player.username === this.props.from ? 'notification is-primary' : 'notification is-secondary'}>
+          <div className="title">{this.props.player.username}{this.props.player.username === this.props.from ? '(you)' : ''}</div>
+          <div className="subtitle">
+            {this.props.player.isDead &&
+              'KILLED'
+            }
+            {!this.props.player.isDead &&
+              <span>alive {this.props.player.killVote.length.toString()}</span>
+            }
+          </div>
+        </div>
+      </div>
     );
   }
 }
