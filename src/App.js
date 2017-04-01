@@ -7,15 +7,16 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      username: '',
-      lobbyId: '',
-      joinLobbyId: '',
-      players: [],
-      ws: io(),
-      create: true,
-      started: false,
-      winner: null,
-      day: true
+      username:     '',
+      user:         null,
+      lobbyId:      '',
+      joinLobbyId:  '',
+      players:      [],
+      ws:           io(),
+      create:        true,
+      started:      false,
+      winner:       null,
+      day:          true
     };
 
     this.handleLobby = this.handleLobby.bind(this)
@@ -51,6 +52,12 @@ class App extends Component {
     })
 
     socket.on('playerUpdate', function(ioEvent){
+      // find and update my user reference
+      for(let n =0; n < ioEvent.players.length; n++){
+        if(ioEvent.players[n].username === self.state.username){
+          self.setState({user: ioEvent.players[n]})
+        }
+      }
       self.setState({players: ioEvent.players})
     })
 
@@ -99,7 +106,6 @@ class App extends Component {
   }
 
   render() {
-    let lobbyField = null
     let self = this
 
     let skippedPlayers = this.state.players.filter(function(player){
@@ -107,17 +113,17 @@ class App extends Component {
     })
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard day={self.state.day} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} from={self.state.username} />
+      return <UserCard day={self.state.day} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
     })
 
     let dayNight = this.state.day ? "day" : "night"
 
     let intro = <div className="columns">
       <div className="column">
-        <h2>Game: {this.state.lobbyId}</h2>
+        <h3>Game: {this.state.lobbyId}</h3>
         {this.state.started &&
           <div>
-            <h2>{dayNight}</h2>
+            <h3>{dayNight}</h3>
             <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>{skippedPlayers.length.toString()}
           </div>
         }
@@ -174,7 +180,7 @@ class App extends Component {
     }
 
     if (this.state.winner) {
-      intro = <h2>{this.state.winner} win</h2>
+      intro = <h3>{this.state.winner} win</h3>
     }
 
     return (
@@ -183,7 +189,7 @@ class App extends Component {
           <div className="hero-body">
             <div class="container">
               <img src={logo} className="App-logo" alt="logo" />
-              <h2 className="title">Witch Hunt</h2>
+              <h3 className="title">Witch Hunt</h3>
             </div>
           </div>
         </section>
@@ -210,18 +216,21 @@ class UserCard extends React.Component {
       return
     }
     // send a kill if it's night and you are a monster
-    if(!this.props.day && this.props.player.username === this.props.from && this.props.player.role === 'witch'){
+    if(!this.props.day && this.props.player.username !== this.props.user.username && this.props.user.role === 'witch'){
       this.props.ws.emit('kill', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
-    this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
+    // send a kill/unkill vote if it's day
+    if(this.props.day){
+      this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.user.username})
+    }
   }
 
   render() {
     return (
       <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
-        <div className={this.props.player.username === this.props.from ? 'notification is-primary' : 'notification is-secondary'}>
-          <div className="title">{this.props.player.username}{this.props.player.username === this.props.from ? '(you)' : ''}</div>
+        <div className={this.props.player.username === this.props.user.username ? 'notification is-primary' : 'notification is-secondary'}>
+          <div className="title">{this.props.player.username}{this.props.player.username === this.props.user.username ? '(you)' : ''}</div>
           <div className="subtitle">
             {this.props.player.isDead &&
               'KILLED'
