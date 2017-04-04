@@ -1,0 +1,54 @@
+// Import Bulma's initial variables
+// @import "../node_modules/bulma/sass/utilities/variables.sass";
+
+// // Override initial variables here
+// // You can add new ones or update existing ones:
+
+$night: #003971; // night
+$day: #FFECA7; // day
+// $pink: #ffb3b3; // Add pink
+// $family-serif: "Georgia", serif; // Add a serif family
+
+// Override generated variables here
+// For example, by default, the $danger color is $red and the font is sans-serif
+// You can change these values:
+
+// $danger: $orange; // Use the existing orange
+// $family-primary: $family-serif; // Use the new serif family
+
+@import "../node_modules/bulma/bulma";
+
+.is-night {
+    background-color: $night !important;
+    color: #fff;
+}
+
+.is-day {
+    background-color: $day;
+    color: #222;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 2s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+@keyframes App-logo-spin {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}

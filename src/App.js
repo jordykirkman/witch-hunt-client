@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import logo from './farm.svg';
+import witchesLogo from './witches.svg';
+import villagersLogo from './villagers.svg';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -8,9 +10,10 @@ class App extends Component {
     super(props);
     this.state = {
       username:     '',
-      user:         null,
+      user:         {},
       lobbyId:      '',
       joinLobbyId:  '',
+      instructions: null,
       players:      [],
       ws:           io(),
       create:        true,
@@ -65,12 +68,14 @@ class App extends Component {
       self.setState({started: true})
     })
 
-    socket.on('day', function(){
+    socket.on('day', function(ioEvent){
       self.setState({day: true})
+      self.setState({instructions: ioEvent.instructions})
     })
 
-    socket.on('night', function(){
+    socket.on('night', function(ioEvent){
       self.setState({day: false})
+      self.setState({instructions: ioEvent.instructions})
     })
 
     socket.on('end', function(ioEvent){
@@ -120,15 +125,11 @@ class App extends Component {
 
     let intro = <div className="columns">
       <div className="column">
-        <h3>Game: {this.state.lobbyId}</h3>
         {this.state.started &&
           <div>
             <h3>{dayNight}</h3>
             <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>{skippedPlayers.length.toString()}
           </div>
-        }
-        {!this.state.started &&
-          <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
         }
       </div>
     </div>
@@ -158,14 +159,14 @@ class App extends Component {
             <div className="field">
               <label className="label">Name</label>
               <p className="control">
-                <input className="input" type="text" placeholder="Text input" value={this.state.username} onChange={this.handleNameChange}/>
+                <input className="input" type="text" placeholder="Your Name" value={this.state.username} onChange={this.handleNameChange}/>
               </p>
             </div>
             {!this.state.create &&
               <div className="field">
                 <label className="label">Game Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Text input" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                  <input className="input" type="text" placeholder="Lobby Id" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
                 </p>
               </div>
             }
@@ -179,23 +180,41 @@ class App extends Component {
       </div>
     }
 
+    let title = <h3>Witch Hunt</h3>
     if (this.state.winner) {
-      intro = <h3>{this.state.winner} win</h3>
+      title = <h3>{this.state.winner} win</h3>
+    }
+
+    let icon = logo
+    if(this.state.winner === 'witches'){
+      icon = witchesLogo
+    } else if(this.state.winner === 'villagers'){
+      icon = villagersLogo
     }
 
     return (
-      <div className="App">
-        <section className="hero is-medium is-primary is-bold">
+      <div className={this.state.day ? 'App is-day' : 'App is-night'}>
+        <section className={this.state.day ? 'hero is-medium is-bold is-day' : 'hero is-medium is-bold is-night'}>
           <div className="hero-body">
-            <div class="container">
-              <img src={logo} className="App-logo" alt="logo" />
-              <h3 className="title">Witch Hunt</h3>
+            <div className="container column">
+              <img src={icon} className="App-logo" alt="logo" />
+              {title}
+              <h2>{this.state.lobbyId}</h2>
+              {this.state.user.isCreator && this.state.players.length >= 4 && !this.state.started &&
+                <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
+              }
+              {this.state.instructions &&
+                <h3>{this.state.instructions}</h3>
+              }
+              {this.state.players.length < 4 && this.state.lobbyId !== '' &&
+                <h3>{this.state.players.length}/4 players ready</h3>
+              }
             </div>
           </div>
         </section>
-          <div className="container">
+          <div className="container column">
             {intro}
-            <div className={this.state.day ? 'columns is-multiline is-day' : 'columns is-multiline is-night'}>
+            <div className={this.state.day ? 'columns is-mobile is-multiline is-day' : 'columns is-mobile is-multiline is-night'}>
               {playerCardList}
             </div>
           </div>
@@ -229,7 +248,7 @@ class UserCard extends React.Component {
   render() {
     return (
       <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
-        <div className={this.props.player.username === this.props.user.username ? 'notification is-primary' : 'notification is-secondary'}>
+        <div className={this.props.player.username === this.props.user.username ? 'notification is-success' : 'notification is-primary'}>
           <div className="title">{this.props.player.username}{this.props.player.username === this.props.user.username ? '(you)' : ''}</div>
           <div className="subtitle">
             {this.props.player.isDead &&
