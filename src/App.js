@@ -68,13 +68,8 @@ class App extends Component {
       self.setState({started: true})
     })
 
-    socket.on('day', function(ioEvent){
-      self.setState({day: true})
-      self.setState({instructions: ioEvent.instructions})
-    })
-
-    socket.on('night', function(ioEvent){
-      self.setState({day: false})
+    socket.on('turn', function(ioEvent){
+      self.setState({time: ioEvent.time})
       self.setState({instructions: ioEvent.instructions})
     })
 
@@ -118,16 +113,14 @@ class App extends Component {
     })
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard day={self.state.day} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
+      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
     })
-
-    let dayNight = this.state.day ? "day" : "night"
 
     let intro = <div className="columns">
       <div className="column">
         {this.state.started &&
           <div>
-            <h3>{dayNight}</h3>
+            <h3>{this.state.time}</h3>
             <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>{skippedPlayers.length.toString()}
           </div>
         }
@@ -193,7 +186,7 @@ class App extends Component {
     }
 
     return (
-      <div className={this.state.day ? 'App is-day' : 'App is-night'}>
+      <div className={`App is-day is-${this.state.time}`}>
         <section className={this.state.day ? 'hero is-medium is-bold is-day' : 'hero is-medium is-bold is-night'}>
           <div className="hero-body">
             <div className="container column">
@@ -214,7 +207,7 @@ class App extends Component {
         </section>
           <div className="container column">
             {intro}
-            <div className={this.state.day ? 'columns is-mobile is-multiline is-day' : 'columns is-mobile is-multiline is-night'}>
+            <div className={`columns is-mobile is-multiline is-${this.state.time}`}>
               {playerCardList}
             </div>
           </div>
@@ -226,36 +219,61 @@ class App extends Component {
 class UserCard extends React.Component {
   constructor(props) {
     super(props)
+    this.state = {
+      showRole: false
+    }
     this.handleVote = this.handleVote.bind(this)
   }
 
   handleVote(event) {
+    let self = this
     // do nothing if the game hasnt started yet
     if(!this.props.ready){
       return
     }
+    if(this.props.player.username === this.props.user.username){
+      return
+    }
     // send a kill if it's night and you are a monster
-    if(!this.props.day && this.props.player.username !== this.props.user.username && this.props.user.role === 'witch'){
+    if(this.props.time === 'night' && this.props.player.username !== this.props.user.username && this.props.user.role === 'witch'){
+      this.props.ws.emit('kill', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
+      return
+    }
+    if(this.props.time === 'dawn' && this.props.player.username !== this.props.user.username && this.props.user.role === 'prophet'){
+      this.setState({showRole: true})
+      setTimeout(function(){
+        self.setState({showRole: false})
+      }, 4000)
       this.props.ws.emit('kill', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     // send a kill/unkill vote if it's day
-    if(this.props.day){
+    if(this.props.time === 'day'){
       this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.user.username})
     }
   }
 
   render() {
+    let classes = 'notification is-primary',
+      myCard    = this.props.player.username === this.props.user.username
+
+    classes = myCard ? `${classes} is-success` : classes
+    classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? `${classes} is-danger` : classes
+    classes = myCard && this.props.user.role === 'prophet' && this.props.time === 'dawn' ? `${classes} is-warning` : classes
+
     return (
       <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
-        <div className={this.props.player.username === this.props.user.username ? 'notification is-success' : 'notification is-primary'}>
-          <div className="title">{this.props.player.username}{this.props.player.username === this.props.user.username ? '(you)' : ''}</div>
+        <div className={classes}>
+          <div className="title">{this.props.player.username}{myCard ? '(you)' : ''}</div>
           <div className="subtitle">
             {this.props.player.isDead &&
               'KILLED'
             }
             {!this.props.player.isDead &&
-              <span>alive {this.props.player.killVote.length.toString()}</span>
+              <p>alive {this.props.player.killVote.length.toString()}</p>
+            }
+            {(this.props.ready && myCard) || this.state.showRole &&
+              <p>{this.props.player.role}</p>
             }
           </div>
         </div>
