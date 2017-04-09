@@ -264,16 +264,16 @@ class UserCard extends React.Component {
     }
     // send a kill if it's night and you are a monster
     if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'witch'){
-      this.props.ws.emit('kill', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
+      this.props.ws.emit('kill', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     // reveal a role if it's dawn and you are a prophet
     if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
+      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
-      this.props.ws.emit('submitVote', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
+      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
     }
   }
 
