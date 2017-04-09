@@ -30,20 +30,38 @@ class App extends Component {
     this.readyUp            = this.readyUp.bind(this)
     this.skipVote           = this.skipVote.bind(this)
     this.toggleCreateLobby  = this.toggleCreateLobby.bind(this)
-    
   }
 
-  handleLobby(event) {
+  componentDidMount() {
+    const socket = this.state.ws
+    const token = window.localStorage.getItem('witch-hunt')
+    const self = this
+    socket.on('connect', function(){
+      console.log('connected')
+      if(token){
+        self.handleLobby.call(self, null, token)
+      }
+    })
+  }
+
+  handleLobby(event, token) {
     const self = this
     const socket = this.state.ws
-    // this.setState({ws: socket})
+    const myUserId = socket.id
 
-    // either a lobby create or lobby join
-    if(self.state.create){
-      socket.emit('create', {username: self.state.username})
+    if(token){
+      let lobbyId = JSON.parse(token).lobbyId
+      let userId = JSON.parse(token).userId
+      socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
     } else {
-      socket.emit('join', {username: self.state.username, lobbyId: self.state.joinLobbyId})
-      self.setState({lobbyId: self.state.joinLobbyId})
+      // either a lobby create or lobby join
+      if(self.state.create){
+        socket.emit('create', {username: self.state.username})
+      } else {
+        console.log('join')
+        socket.emit('join', {username: self.state.username, lobbyId: self.state.joinLobbyId})
+        self.setState({lobbyId: self.state.joinLobbyId})
+      }
     }
 
     /*
@@ -53,14 +71,16 @@ class App extends Component {
       turn: changing from day to night
     */
 
-    socket.on('created', function(ioEvent){
+    socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
+      let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
+      window.localStorage.setItem('witch-hunt', session);
     })
 
     socket.on('playerUpdate', function(ioEvent){
       // find and update my user reference
       for(let n =0; n < ioEvent.players.length; n++){
-        if(ioEvent.players[n].username === self.state.username){
+        if(ioEvent.players[n]['id'] === socket.id){
           self.setState({user: ioEvent.players[n]})
         }
       }
@@ -88,8 +108,6 @@ class App extends Component {
     socket.on('disconnect', function(){
 
     });
-
-    event.preventDefault()
   }
 
   toggleCreateLobby(event) {
@@ -131,7 +149,7 @@ class App extends Component {
     })
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
+      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.ws.id} />
     })
 
     let intro = <div className="columns">
@@ -263,23 +281,23 @@ class UserCard extends React.Component {
       return
     }
     // send a kill if it's night and you are a monster
-    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'witch'){
+    if(this.props.time === 'night' && this.props.player.id !== this.props.user && this.props.user.role === 'witch'){
       this.props.ws.emit('kill', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
+    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user && this.props.user.role === 'prophet'){
+      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
-      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
+      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
     }
   }
 
   render() {
     let classes = 'notification is-primary',
-      myCard    = this.props.player.id === this.props.user.id
+      myCard    = this.props.player.id === this.props.user
 
     classes = myCard ? `${classes} is-success` : classes
     classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? `${classes} is-danger` : classes
