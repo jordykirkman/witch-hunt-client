@@ -106,7 +106,7 @@ class App extends Component {
   }
 
   skipVote() {
-    this.state.ws.emit('submitVote', {skip: true, lobbyId: this.state.lobbyId, from: this.state.username})
+    this.state.ws.emit('submitVote', {skip: true, lobbyId: this.state.lobbyId, from: this.state.user.id})
   }
 
   readyUp() {
@@ -255,7 +255,7 @@ class UserCard extends React.Component {
       return
     }
     // if it's you, remind yourself of your role
-    if(this.props.player.username === this.props.user.username){
+    if(this.props.player.id === this.props.user.id){
       this.setState({showRole: true})
       setTimeout(function(){
         self.setState({showRole: false})
@@ -263,23 +263,23 @@ class UserCard extends React.Component {
       return
     }
     // send a kill if it's night and you are a monster
-    if(this.props.time === 'night' && this.props.player.username !== this.props.user.username && this.props.user.role === 'witch'){
-      this.props.ws.emit('kill', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.from})
+    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'witch'){
+      this.props.ws.emit('kill', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.username !== this.props.user.username && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.user.username})
+    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
+      this.props.ws.emit('reveal', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
-      this.props.ws.emit('submitVote', {username: this.props.player.username, lobbyId: this.props.lobbyId, from: this.props.user.username})
+      this.props.ws.emit('submitVote', {username: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
     }
   }
 
   render() {
     let classes = 'notification is-primary',
-      myCard    = this.props.player.username === this.props.user.username
+      myCard    = this.props.player.id === this.props.user.id
 
     classes = myCard ? `${classes} is-success` : classes
     classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? `${classes} is-danger` : classes
@@ -290,11 +290,10 @@ class UserCard extends React.Component {
         <div className={classes}>
           <div className="title">{this.props.player.username}{myCard ? '(you)' : ''}</div>
           <div className="subtitle">
-            {this.props.player.role === 'ghost' &&
-            // TODO add old role when player is dead, others need to be able to see
-              <h2>💀</h2>
+            {this.props.player['isDead'] &&
+              <h2>💀 {this.props.player.role}</h2>
             }
-            {this.props.player.role !== 'ghost' &&
+            {!this.props.player['isDead'] &&
               <p>alive {this.props.player.killVote.length.toString()}</p>
             }
             {this.state.showRole &&
