@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
-import logo from './farm.svg';
+import farmLogo from './farm.svg';
+import sunLogo from './sun.svg';
+import moonLogo from './moon.svg';
+import dawnLogo from './dawn.svg';
 import witchesLogo from './witches.svg';
 import villagersLogo from './villagers.svg';
 import io from 'socket.io-client';
@@ -47,7 +50,6 @@ class App extends Component {
   handleLobby(event, token) {
     const self = this
     const socket = this.state.ws
-    const myUserId = socket.id
 
     if(token){
       let lobbyId = JSON.parse(token).lobbyId
@@ -87,8 +89,15 @@ class App extends Component {
       self.setState({players: ioEvent.players})
     })
 
-    socket.on('start', function(){
-      self.setState({started: true})
+    socket.on('start', function(ioEvent){
+      self.setState({
+        username:           '',
+        instructions:       null,
+        playerNotification: null,
+        started:            true,
+        winner:             null,
+        time:               'dawn'
+      })
     })
 
     // changes the game turn from dawn -> day -> night 
@@ -210,16 +219,17 @@ class App extends Component {
     }
 
     let title = <h3>Witch Hunt</h3>
-    if (this.state.winner) {
-      title = <h3>{this.state.winner} win</h3>
+    let gameIcon = witchesLogo
+    if(this.state.winner === 'villagers'){
+      gameIcon = villagersLogo
     }
-
-    let icon = logo
-    if(this.state.winner === 'witches'){
-      icon = witchesLogo
-    } else if(this.state.winner === 'villagers'){
-      icon = villagersLogo
-    }
+    let timeIcon = dawnLogo
+      if(this.state.time === 'day'){
+        timeIcon = sunLogo
+      }
+      if(this.state.time === 'night'){
+        timeIcon = moonLogo
+      }
 
     return (
       <div className={`App is-${this.state.time}`}>
@@ -231,11 +241,24 @@ class App extends Component {
         <section className='hero is-medium is-bold transparent'>
           <div className="hero-body">
             <div className="container column">
-              <img src={icon} className="App-logo" alt="logo" />
+              {this.state.winner &&
+                <div class="game-state-icon">
+                  <img src={gameIcon} className="App-logo winner" alt="logo" />
+                </div>
+              }
+              {!this.state.winner &&
+                <div class="game-state-icon">
+                  <img src={timeIcon} className="App-logo time-icon" alt="logo" />
+                  <img src={farmLogo} className="App-logo farm-icon" alt="logo" />
+                </div>
+              }
               {title}
               <h2>{this.state.lobbyId}</h2>
               {this.state.user.isCreator && this.state.players.length >= 4 && !this.state.started &&
                 <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
+              }
+              {this.state.winner &&
+                <button className="button is-primary" onClick={this.readyUp}>Play again</button>
               }
               {this.state.instructions &&
                 <h3>{this.state.instructions}</h3>
