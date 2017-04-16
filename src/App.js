@@ -40,7 +40,7 @@ class App extends Component {
     const token = window.localStorage.getItem('witch-hunt')
     const self = this
     socket.on('connect', function(){
-      console.log('connected')
+      console.log('connected', socket.id)
       if(token){
         self.handleLobby.call(self, null, token)
       }
@@ -106,7 +106,7 @@ class App extends Component {
       self.setState({instructions: ioEvent.instructions})
     })
 
-    socket.on('revealed', function(ioEvent){
+    socket.on('notification', function(ioEvent){
       self.playerNotification.call(this, ioEvent.role)
     })
 
@@ -143,11 +143,14 @@ class App extends Component {
   // a notification for this player received
   playerNotification(notification){
     let self = this
-    this.setState({playerNotification: notification})
+    this.setState({playerNotification: notification, showNotification: true})
+    setTimeout(function(){
+      self.setState({showNotification: false})      
+    }, 4000)
     // decay after 4 seconds
     setTimeout(function(){
       self.setState({playerNotification: null})      
-    }, 4000)
+    }, 5000)
   }
 
   render() {
@@ -158,7 +161,7 @@ class App extends Component {
     })
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.ws.id} />
+      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
     })
 
     let intro = <div className="columns">
@@ -194,6 +197,7 @@ class App extends Component {
 
           </div>
           <div className="column is-12">
+            <form onSubmit={this.handleLobby}>
             <div className="field">
               <label className="label">Name</label>
               <p className="control">
@@ -210,9 +214,10 @@ class App extends Component {
             }
             <div className="field">
               <p className="control">
-                <a className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}>Play</a>
+                <input className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}/>
               </p>
             </div>
+            </form>
           </div>
         </div>
       </div>
@@ -234,9 +239,11 @@ class App extends Component {
     return (
       <div className={`App is-${this.state.time}`}>
         {this.state.playerNotification &&
-          <span className="player-notification">
-            {this.state.playerNotification}
-          </span>
+          <div className={`player-notification ${this.state.showNotification ? 'show' : ''}`}>
+            <span className="player-notification-text">
+              {this.state.playerNotification} Cast Failed
+            </span>
+          </div>
         }
         <section className='hero is-medium is-bold transparent'>
           <div className="hero-body">
@@ -244,12 +251,13 @@ class App extends Component {
               {this.state.winner &&
                 <div class="game-state-icon">
                   <img src={gameIcon} className="App-logo winner" alt="logo" />
+                  <h2>{this.state.winner}</h2>
                 </div>
               }
               {!this.state.winner &&
                 <div class="game-state-icon">
                   <img src={timeIcon} className="App-logo time-icon" alt="logo" />
-                  <img src={farmLogo} className="App-logo farm-icon" alt="logo" />
+                  <img src={farmLogo} className="farm-icon" alt="logo" />
                 </div>
               }
               {title}
@@ -257,7 +265,7 @@ class App extends Component {
               {this.state.user.isCreator && this.state.players.length >= 4 && !this.state.started &&
                 <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
               }
-              {this.state.winner &&
+              {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
                 <button className="button is-primary" onClick={this.readyUp}>Play again</button>
               }
               {this.state.instructions &&
@@ -304,32 +312,32 @@ class UserCard extends React.Component {
       return
     }
     // send a kill if it's night and you are a monster
-    if(this.props.time === 'night' && this.props.player.id !== this.props.user && this.props.user.role === 'witch'){
+    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'witch'){
       this.props.ws.emit('kill', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
       return
     }
     // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user && this.props.user.role === 'prophet'){
+    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
       this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
-      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
+      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
     }
   }
 
   render() {
-    let classes = 'notification is-primary',
-      myCard    = this.props.player.id === this.props.user
+    let classes = 'notification info-card-villager',
+      myCard    = this.props.player.id === this.props.user.id
 
-    classes = myCard ? `${classes} is-success` : classes
-    classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? `${classes} is-danger` : classes
-    classes = myCard && this.props.user.role === 'prophet' && this.props.time === 'dawn' ? `${classes} is-warning` : classes
+    classes = myCard ? 'notification info-card-villager is-me' : classes
+    classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? 'notification info-card-witch' : classes
+    classes = myCard && this.props.user.role === 'prophet' && this.props.time === 'dawn' ? 'notification info-card-prophet' : classes
 
     return (
       <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
         <div className={classes}>
-          <div className="title">{this.props.player.username}{myCard ? '(you)' : ''}</div>
+          <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
             {this.props.player['isDead'] &&
               <h2>💀 {this.props.player.role}</h2>

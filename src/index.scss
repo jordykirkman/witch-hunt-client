@@ -46,7 +46,49 @@ $day: #FFECA7; // day
   background: -webkit-linear-gradient(top,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* Chrome10-25,Safari5.1-6 */
   background: linear-gradient(to bottom,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
+}
 
+.info-card-villager, .info-card-prophet, .info-card-witch {
+  background-image: url('./images/info-card-villager.jpg');
+  background-position: center top;
+  -webkit-box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.5);
+  -moz-box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.5);
+  box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.5);
+  &.notification {
+    padding: .25rem;
+    .title {
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      margin-bottom: .25rem;
+      color: #3b3b3b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .subtitle {
+      margin-top: 0;
+      color: #3b3b3b;
+    }
+  }
+}
+.info-card-villager {
+  border: solid 1px #fff;
+}
+.info-card-prophet {
+  border: solid 1px goldenrod;
+  -webkit-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+  -moz-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+  box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+}
+.info-card-witch {
+  border: solid 1px darkred;
+  -webkit-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+  -moz-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+  box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+}
+
+.is-me {
+  border: solid 1px limegreen;
 }
 
 .App {
@@ -60,6 +102,10 @@ $day: #FFECA7; // day
   width: 100px;
   margin: auto;
   display: block;
+}
+
+.farm-icon {
+  width: 120px;
 }
 
 .App-header {
@@ -77,20 +123,34 @@ $day: #FFECA7; // day
 }
 
 .player-notification {
-  font-size: 60px;
-  line-height: 120px;
-  top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0,0,0, 0.5);
   z-index: 99;
   text-transform: uppercase;
   width: 100vw;
-  text-shadow: 0 0 20px #fff;
-  color: #fff;
-  left: 0;
-  position: absolute;
-  -webkit-animation: Spooky-intro forwards 2s linear; /* Safari, Chrome and Opera > 12.1 */
-      -moz-animation: Spooky-intro forwards 2s linear; /* Firefox < 16 */
-      -ms-animation: Spooky-intro forwards 2s linear; /* Internet Explorer */
-          animation: Spooky-intro forwards 2s linear;
+  height: 100vh;
+  position: fixed;
+  opacity: 0;
+  -webkit-transition: opacity 1s ease;
+  -moz-transition: opacity 1s ease;
+  -o-transition: opacity 1s ease;
+  -ms-transition: opacity 1s ease;
+  transition: opacity 1s ease;
+  .player-notification-text {
+    text-shadow: 0 0 20px #fff;
+    color: #fff;
+    font-size: 60px;
+    line-height: 60px;
+    -webkit-animation: Spooky-intro infinite 2s linear; /* Safari, Chrome and Opera > 12.1 */
+        -moz-animation: Spooky-intro infinite 2s linear; /* Firefox < 16 */
+        -ms-animation: Spooky-intro infinite 2s linear; /* Internet Explorer */
+            animation: Spooky-intro infinite 2s linear;
+    &.show {
+      opacity: 1;
+    }
+  }
 }
 
 @keyframes App-logo-swell {
@@ -100,15 +160,15 @@ $day: #FFECA7; // day
 }
 
 @keyframes Spooky-intro {
-	0% { opacity: 0; transform: translate(2px, 1px) rotate(0deg); }
-	10% { opacity: 0.2; transform: translate(-1px, -2px) rotate(-1deg); }
-	20% { opacity: 0.4; transform: translate(-3px, 0px) rotate(1deg); }
-	30% { opacity: 0.6; transform: translate(0px, 2px) rotate(0deg); }
-	40% { opacity: 0.8; transform: translate(1px, -1px) rotate(1deg); }
-	50% { opacity: 1; transform: translate(-1px, 2px) rotate(-1deg); }
-	60% { opacity: 1; transform: translate(-3px, 1px) rotate(0deg); }
-	70% { opacity: 1; transform: translate(2px, 1px) rotate(-1deg); }
-	80% { opacity: 0.7; transform: translate(-1px, -1px) rotate(1deg); }
-	90% { opacity: 0.3; transform: translate(2px, 2px) rotate(0deg); }
-	100% { opacity: 0; transform: translate(1px, -2px) rotate(-1deg); }
+	0% { transform: translate(2px, 1px) rotate(0deg); }
+	10% { transform: translate(-1px, -2px) rotate(-1deg); }
+	20% { transform: translate(-3px, 0px) rotate(1deg); }
+	30% { transform: translate(0px, 2px) rotate(0deg); }
+	40% { transform: translate(1px, -1px) rotate(1deg); }
+	50% { transform: translate(-1px, 2px) rotate(-1deg); }
+	60% { transform: translate(-3px, 1px) rotate(0deg); }
+	70% { transform: translate(2px, 1px) rotate(-1deg); }
+	80% { transform: translate(-1px, -1px) rotate(1deg); }
+	90% { transform: translate(2px, 2px) rotate(0deg); }
+	100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
