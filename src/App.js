@@ -12,12 +12,15 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      botCount:           0,
       username:           '',
       user:               {},
       lobbyId:            '',
       joinLobbyId:        '',
       instructions:       null,
       playerNotification: null,
+      showNotification:   false,
+      notificationClass:  '',
       players:            [],
       ws:                 io(),
       create:             true,
@@ -29,9 +32,11 @@ class App extends Component {
     this.handleLobby        = this.handleLobby.bind(this)
     this.handleLobbyName    = this.handleLobbyName.bind(this)
     this.handleNameChange   = this.handleNameChange.bind(this)
+    this.handleBotCount     = this.handleBotCount.bind(this)
     this.playerNotification = this.playerNotification.bind(this)
     this.readyUp            = this.readyUp.bind(this)
     this.skipVote           = this.skipVote.bind(this)
+    this.joinLobby          = this.joinLobby.bind(this)
     this.toggleCreateLobby  = this.toggleCreateLobby.bind(this)
   }
 
@@ -55,23 +60,7 @@ class App extends Component {
       let lobbyId = JSON.parse(token).lobbyId
       let userId = JSON.parse(token).userId
       socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
-    } else {
-      // either a lobby create or lobby join
-      if(self.state.create){
-        socket.emit('create', {username: self.state.username})
-      } else {
-        console.log('join')
-        socket.emit('join', {username: self.state.username, lobbyId: self.state.joinLobbyId})
-        self.setState({lobbyId: self.state.joinLobbyId})
-      }
     }
-
-    /*
-      join: a player joined your lobby
-      vote: a vote from a player, for another player to die
-      kill: a witch casting a kill spell
-      turn: changing from day to night
-    */
 
     socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
@@ -107,7 +96,7 @@ class App extends Component {
     })
 
     socket.on('notification', function(ioEvent){
-      self.playerNotification.call(this, ioEvent.role)
+      self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
     })
 
     socket.on('end', function(ioEvent){
@@ -128,6 +117,10 @@ class App extends Component {
     this.setState({username: event.target.value})
   }
 
+  handleBotCount(event) {
+    this.setState({botCount: event.target.value})
+  }
+
   handleLobbyName() {
     this.setState({joinLobbyId: event.target.value})
   }
@@ -140,10 +133,24 @@ class App extends Component {
     this.state.ws.emit('ready', {lobbyId: this.state.lobbyId})
   }
 
+  joinLobby(e){
+    e.preventDefault()
+    // either a lobby create or lobby join
+    if(this.state.create){
+      this.state.ws.emit('create', {username: this.state.username, botCount: this.state.botCount})
+    } else {
+      this.state.ws.emit('join', {username: this.state.username, lobbyId: this.state.joinLobbyId})
+      this.setState({lobbyId: this.state.joinLobbyId})
+    }
+  }
+
   // a notification for this player received
-  playerNotification(notification){
+  playerNotification(notification, messageClass){
     let self = this
-    this.setState({playerNotification: notification, showNotification: true})
+    this.setState({playerNotification: notification, notificationClass: messageClass})
+    setTimeout(function(){
+      self.setState({showNotification: true})
+    }, 100)
     setTimeout(function(){
       self.setState({showNotification: false})      
     }, 4000)
@@ -154,7 +161,9 @@ class App extends Component {
   }
 
   render() {
-    let self = this
+    let self = this,
+      settingClass = this.state.lobbyId.split('-')[1]
+
 
     let skippedPlayers = this.state.players.filter(function(player){
       return player.skip
@@ -197,26 +206,38 @@ class App extends Component {
 
           </div>
           <div className="column is-12">
-            <form onSubmit={this.handleLobby}>
-            <div className="field">
-              <label className="label">Name</label>
-              <p className="control">
-                <input className="input" type="text" placeholder="Your Name" value={this.state.username} onChange={this.handleNameChange}/>
-              </p>
-            </div>
-            {!this.state.create &&
+            <form onSubmit={this.joinLobby}>
               <div className="field">
-                <label className="label">Game Name</label>
+                <label className="label">Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Lobby Id" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                  <input className="input" type="text" placeholder="Your Name" value={this.state.username} onChange={this.handleNameChange}/>
                 </p>
               </div>
-            }
-            <div className="field">
-              <p className="control">
-                <input className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}/>
-              </p>
-            </div>
+              <div className="field">
+                <p class="control">
+                  <span class="select">
+                    <select onChange={this.handleBotCount}>
+                      <option>0</option>
+                      <option>2</option>
+                      <option>4</option>
+                      <option>6</option>
+                    </select>
+                  </span>
+                </p>
+              </div>
+              {!this.state.create &&
+                <div className="field">
+                  <label className="label">Game Name</label>
+                  <p className="control">
+                    <input className="input" type="text" placeholder="Lobby Id" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                  </p>
+                </div>
+              }
+              <div className="field">
+                <p className="control">
+                  <input className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}/>
+                </p>
+              </div>
             </form>
           </div>
         </div>
@@ -237,12 +258,12 @@ class App extends Component {
       }
 
     return (
-      <div className={`App is-${this.state.time}`}>
+      <div className={`App is-${this.state.time} ${settingClass}`}>
         {this.state.playerNotification &&
-          <div className={`player-notification ${this.state.showNotification ? 'show' : ''}`}>
-            <span className="player-notification-text">
-              {this.state.playerNotification} Cast Failed
-            </span>
+          <div className={`player-notification ${this.state.notificationClass} ${this.state.showNotification ? 'show' : ''}`}>
+            <div className='player-notification-text'>
+              {this.state.playerNotification}
+            </div>
           </div>
         }
         <section className='hero is-medium is-bold transparent'>

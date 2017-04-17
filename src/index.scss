@@ -93,7 +93,7 @@ $day: #FFECA7; // day
 
 .App {
   text-align: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -132,12 +132,32 @@ $day: #FFECA7; // day
   width: 100vw;
   height: 100vh;
   position: fixed;
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  -o-transition: opacity 1s ease-in-out;
+  -ms-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
   opacity: 0;
-  -webkit-transition: opacity 1s ease;
-  -moz-transition: opacity 1s ease;
-  -o-transition: opacity 1s ease;
-  -ms-transition: opacity 1s ease;
-  transition: opacity 1s ease;
+  &.show {
+    opacity: 1;
+    -webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    -ms-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
+  }
+  &.failed {
+    color: red;
+  }
+  &.witch {
+    color: red;
+  }
+  &.prophet {
+    color: goldenrod;
+  }
+  &.villager {
+    color: mediumspringgreen;
+  }
   .player-notification-text {
     text-shadow: 0 0 20px #fff;
     color: #fff;
@@ -147,9 +167,6 @@ $day: #FFECA7; // day
         -moz-animation: Spooky-intro infinite 2s linear; /* Firefox < 16 */
         -ms-animation: Spooky-intro infinite 2s linear; /* Internet Explorer */
             animation: Spooky-intro infinite 2s linear;
-    &.show {
-      opacity: 1;
-    }
   }
 }
 
