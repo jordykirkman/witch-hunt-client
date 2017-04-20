@@ -290,7 +290,7 @@ class App extends Component {
                 <button className="button is-primary" onClick={this.readyUp}>Play again</button>
               }
               {this.state.instructions &&
-                <h3>{this.state.instructions}</h3>
+                <div class="instructions">{this.state.instructions}</div>
               }
               {this.state.players.length < 4 && this.state.lobbyId !== '' &&
                 <h3>{this.state.players.length}/4 players ready</h3>

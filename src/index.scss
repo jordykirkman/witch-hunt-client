@@ -21,31 +21,31 @@ $day: #FFECA7; // day
 .is-night {
   color: #e5d7b3;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#141a21+0,49546d+29,404e60+47,101214+100 */
-  background: #141a21; /* Old browsers */
-  background: -moz-linear-gradient(top,  #141a21 0%, #49546d 29%, #404e60 47%, #101214 100%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(top,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#141a21', endColorstr='#101214',GradientType=0 ); /* IE6-9 */
+  background: #1e4f6b; /* Old browsers */
+  // background: -moz-linear-gradient(top,  #141a21 0%, #49546d 29%, #404e60 47%, #101214 100%); /* FF3.6-15 */
+  // background: -webkit-linear-gradient(top,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* Chrome10-25,Safari5.1-6 */
+  // background: linear-gradient(to bottom,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#141a21', endColorstr='#101214',GradientType=0 ); /* IE6-9 */
 }
 
 .is-day {
-  color: #222;
+  color: #e5d7b3;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#fff07f+0,fcf3c7+30,fcf3c7+42,7f611c+100 */
-  background: #fff07f; /* Old browsers */
-  background: -moz-linear-gradient(top,  #fff07f 0%, #fcf3c7 30%, #fcf3c7 42%, #7f611c 100%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(top,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fff07f', endColorstr='#7f611c',GradientType=0 ); /* IE6-9 */
+  background: #ada15e; /* Old browsers */
+  // background: -moz-linear-gradient(top,  #fff07f 0%, #fcf3c7 30%, #fcf3c7 42%, #7f611c 100%); /* FF3.6-15 */
+  // background: -webkit-linear-gradient(top,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* Chrome10-25,Safari5.1-6 */
+  // background: linear-gradient(to bottom,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fff07f', endColorstr='#7f611c',GradientType=0 ); /* IE6-9 */
 }
 
 .is-dawn {
   color: #fff;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#e0ab8f+0,e5d7b3+26,dbcfad+38,82726a+100 */
-  background: #e0ab8f; /* Old browsers */
-  background: -moz-linear-gradient(top,  #e0ab8f 0%, #e5d7b3 26%, #dbcfad 38%, #82726a 100%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(top,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
+  background: #82726a; /* Old browsers */
+  // background: -moz-linear-gradient(top,  #e0ab8f 0%, #e5d7b3 26%, #dbcfad 38%, #82726a 100%); /* FF3.6-15 */
+  // background: -webkit-linear-gradient(top,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* Chrome10-25,Safari5.1-6 */
+  // background: linear-gradient(to bottom,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
 }
 
 .info-card-villager, .info-card-prophet, .info-card-witch {
@@ -94,6 +94,15 @@ $day: #FFECA7; // day
 .App {
   text-align: center;
   min-height: 100vh;
+  -webkit-transition: background 1s linear;
+  -ms-transition: background 1s linear;
+  transition: background 1s linear;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: contain;
+  &.caves {
+    background-image: url('./images/cave.png');
+  }
 }
 
 .App-logo {
