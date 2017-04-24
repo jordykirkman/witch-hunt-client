@@ -78,29 +78,23 @@ class App extends Component {
       self.setState({players: ioEvent.players})
     })
 
-    socket.on('start', function(ioEvent){
-      self.setState({
-        username:           '',
-        instructions:       null,
-        playerNotification: null,
-        started:            true,
-        winner:             null,
-        time:               'dawn'
-      })
-    })
-
-    // changes the game turn from dawn -> day -> night 
-    socket.on('turn', function(ioEvent){
-      self.setState({time: ioEvent.time})
-      self.setState({instructions: ioEvent.instructions})
+    // changes something about the game state
+    socket.on('gameUpdate', function(ioEvent){
+      // if we are updating the player list
+      if(ioEvent.players){
+        // find and update my user reference
+        for(let n =0; n < ioEvent.players.length; n++){
+          if(ioEvent.players[n]['id'] === socket.id){
+            self.setState({user: ioEvent.players[n]})
+          }
+        }
+      }
+      // update the game state like normal
+      self.setState(ioEvent)
     })
 
     socket.on('notification', function(ioEvent){
       self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
-    })
-
-    socket.on('end', function(ioEvent){
-      self.setState({winner: ioEvent.winner})
     })
 
     socket.on('disconnect', function(){
@@ -140,7 +134,6 @@ class App extends Component {
       this.state.ws.emit('create', {username: this.state.username, botCount: this.state.botCount})
     } else {
       this.state.ws.emit('join', {username: this.state.username, lobbyId: this.state.joinLobbyId})
-      this.setState({lobbyId: this.state.joinLobbyId})
     }
   }
 
@@ -177,8 +170,8 @@ class App extends Component {
       <div className="column">
         {this.state.started && this.state.time === 'day' &&
           <div>
-            <h3>{this.state.time}</h3>
-            <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>{skippedPlayers.length.toString()}
+            <h3>{skippedPlayers.length.toString()} votes to skip</h3>
+            <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>
           </div>
         }
       </div>
@@ -214,8 +207,8 @@ class App extends Component {
                 </p>
               </div>
               <div className="field">
-                <p class="control">
-                  <span class="select">
+                <p className="control">
+                  <span className="select">
                     <select onChange={this.handleBotCount}>
                       <option>0</option>
                       <option>2</option>
@@ -244,7 +237,6 @@ class App extends Component {
       </div>
     }
 
-    let title = <h3>Witch Hunt</h3>
     let gameIcon = witchesLogo
     if(this.state.winner === 'villagers'){
       gameIcon = villagersLogo
@@ -258,52 +250,58 @@ class App extends Component {
       }
 
     return (
-      <div className={`App is-${this.state.time} ${settingClass}`}>
-        {this.state.playerNotification &&
-          <div className={`player-notification ${this.state.notificationClass} ${this.state.showNotification ? 'show' : ''}`}>
-            <div className='player-notification-text'>
-              {this.state.playerNotification}
+      <div className={`App container is-${this.state.time} ${settingClass}`}>
+        <div className='column'>
+          {this.state.playerNotification &&
+            <div className={`player-notification ${this.state.notificationClass} ${this.state.showNotification ? 'show' : ''}`}>
+              <div className='player-notification-text'>
+                {this.state.playerNotification}
+              </div>
             </div>
-          </div>
-        }
-        <section className='hero is-medium is-bold transparent'>
-          <div className="hero-body">
-            <div className="container column">
-              {this.state.winner &&
-                <div class="game-state-icon">
-                  <img src={gameIcon} className="App-logo winner" alt="logo" />
-                  <h2>{this.state.winner}</h2>
-                </div>
-              }
-              {!this.state.winner &&
-                <div class="game-state-icon">
-                  <img src={timeIcon} className="App-logo time-icon" alt="logo" />
-                  <img src={farmLogo} className="farm-icon" alt="logo" />
-                </div>
-              }
-              {title}
-              <h2>{this.state.lobbyId}</h2>
-              {this.state.user.isCreator && this.state.players.length >= 4 && !this.state.started &&
-                <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
-              }
-              {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
-                <button className="button is-primary" onClick={this.readyUp}>Play again</button>
-              }
-              {this.state.instructions &&
-                <div class="instructions">{this.state.instructions}</div>
-              }
-              {this.state.players.length < 4 && this.state.lobbyId !== '' &&
-                <h3>{this.state.players.length}/4 players ready</h3>
-              }
+          }
+          <section className='hero is-medium is-bold transparent'>
+            <div className="hero-body">
+              <div className="column">
+                {this.state.winner &&
+                  <div className="game-state-icon">
+                    <img src={gameIcon} className="App-logo winner" alt="logo" />
+                    <h2>{this.state.winner}</h2>
+                  </div>
+                }
+                {!this.state.winner &&
+                  <div className="game-state-icon">
+                    <img src={timeIcon} className="App-logo time-icon" alt="logo" />
+                    <img src={farmLogo} className="farm-icon" alt="logo" />
+                  </div>
+                }
+                {!this.state.lobbyId &&
+                  <div className="lobby-name">Witch Hunt</div>
+                }
+                {this.state.lobbyId &&
+                  <div className="lobby-name">{this.state.lobbyId}</div>
+                }
+                {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 &&
+                  <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
+                }
+                {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
+                  <button className="button is-primary" onClick={this.readyUp}>Play again</button>
+                }
+                {this.state.instructions &&
+                  <div className="instructions">{this.state.instructions}</div>
+                }
+                {this.state.players.length < 4 && this.state.lobbyId !== '' &&
+                  <h3>{this.state.players.length}/4 players ready</h3>
+                }
+              </div>
             </div>
-          </div>
-        </section>
-          <div className="container column">
-            {intro}
-            <div className={`columns is-mobile is-multiline`}>
-              {playerCardList}
+          </section>
+            <div className="column">
+              {intro}
+              <div className={`columns is-mobile is-multiline`}>
+                {playerCardList}
+              </div>
             </div>
-          </div>
+        </div>
       </div>
     );
   }
@@ -356,7 +354,7 @@ class UserCard extends React.Component {
     classes = myCard && this.props.user.role === 'prophet' && this.props.time === 'dawn' ? 'notification info-card-prophet' : classes
 
     return (
-      <div className="column is-half-mobile is-one-third-tablet is-one-quarter-desktop" onClick={this.handleVote}>
+      <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop" onClick={this.handleVote}>
         <div className={classes}>
           <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
