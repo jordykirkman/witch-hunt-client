@@ -171,7 +171,7 @@ class App extends Component {
         {this.state.started && this.state.time === 'day' &&
           <div>
             <h3>{skippedPlayers.length.toString()} votes to skip</h3>
-            <a className="button is-primary" onClick={this.skipVote}>Skip Vote</a>
+            <a className="button is-primary" onClick={this.skipVote}>Skip</a>
           </div>
         }
       </div>
@@ -346,26 +346,24 @@ class UserCard extends React.Component {
   }
 
   render() {
-    let classes = 'notification info-card-villager',
-      myCard    = this.props.player.id === this.props.user.id
-
-    classes = myCard ? 'notification info-card-villager is-me' : classes
-    classes = myCard && this.props.user.role === 'witch' && this.props.time === 'night' ? 'notification info-card-witch' : classes
-    classes = myCard && this.props.user.role === 'prophet' && this.props.time === 'dawn' ? 'notification info-card-prophet' : classes
+    let myCard    = this.props.player.id === this.props.user.id,
+      myCardClass = myCard ? 'is-me' : '',
+      myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
     return (
       <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop" onClick={this.handleVote}>
-        <div className={classes}>
+        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
           <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
-            {this.props.player['isDead'] &&
-              <h2>💀 {this.props.player.role}</h2>
+            {this.props.player.isDead || this.state.showRole &&
+              <div className="player-role">
+                {this.props.player.role}
+              </div>
             }
-            {!this.props.player['isDead'] &&
-              <p>alive {this.props.player.killVote.length.toString()}</p>
-            }
-            {this.state.showRole &&
-              <p>{this.props.player.role}</p>
+            {!this.props.player.isDead &&
+              <div className="vote-count">
+                {this.props.player.killVote.length.toString()}
+              </div>
             }
           </div>
         </div>
