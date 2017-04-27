@@ -5,6 +5,7 @@ import moonLogo from './moon.svg';
 import dawnLogo from './dawn.svg';
 import witchesLogo from './witches.svg';
 import villagersLogo from './villagers.svg';
+import instructionsImage from './images/instructions.png';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -259,48 +260,47 @@ class App extends Component {
               </div>
             </div>
           }
-          <section className='hero is-medium is-bold transparent'>
-            <div className="hero-body">
-              <div className="column">
-                {this.state.winner &&
-                  <div className="game-state-icon">
-                    <img src={gameIcon} className="App-logo winner" alt="logo" />
-                    <h2>{this.state.winner}</h2>
-                  </div>
-                }
-                {!this.state.winner &&
-                  <div className="game-state-icon">
-                    <img src={timeIcon} className="App-logo time-icon" alt="logo" />
-                    <img src={farmLogo} className="farm-icon" alt="logo" />
-                  </div>
-                }
-                {!this.state.lobbyId &&
-                  <div className="lobby-name">Witch Hunt</div>
-                }
-                {this.state.lobbyId &&
-                  <div className="lobby-name">{this.state.lobbyId}</div>
-                }
-                {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 &&
-                  <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
-                }
-                {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
-                  <button className="button is-primary" onClick={this.readyUp}>Play again</button>
-                }
-                {this.state.instructions &&
-                  <div className="instructions">{this.state.instructions}</div>
-                }
-                {this.state.players.length < 4 && this.state.lobbyId !== '' &&
-                  <h3>{this.state.players.length}/4 players ready</h3>
-                }
+          <div className="column">
+            {this.state.winner &&
+              <div className="game-state-icon">
+                <img src={gameIcon} className="App-logo winner" alt="logo" />
+                <h2>{this.state.winner}</h2>
               </div>
-            </div>
-          </section>
-            <div className="column">
-              {intro}
-              <div className={`columns is-mobile is-multiline`}>
-                {playerCardList}
+            }
+            {!this.state.winner && this.state.lobbyId &&
+              <div className="game-state-icon">
+                <img src={timeIcon} className="App-logo time-icon" alt="logo" />
+                <img src={farmLogo} className="farm-icon" alt="logo" />
               </div>
+            }
+            {!this.state.lobbyId &&
+              <div className="lobby-name">
+                Witch Hunt
+                <img className="instructions-image" src={instructionsImage}/>
+              </div>
+            }
+            {this.state.lobbyId &&
+              <div className="lobby-name">{this.state.lobbyId}</div>
+            }
+            {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 &&
+              <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
+            }
+            {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
+              <button className="button is-primary" onClick={this.readyUp}>Play again</button>
+            }
+            {this.state.instructions &&
+              <div className="instructions">{this.state.instructions}</div>
+            }
+            {this.state.players.length < 4 && this.state.lobbyId !== '' &&
+              <h3>{this.state.players.length}/4 players ready</h3>
+            }
+          </div>
+          <div className="column">
+            {intro}
+            <div className={`columns is-mobile is-multiline`}>
+              {playerCardList}
             </div>
+          </div>
         </div>
       </div>
     );
