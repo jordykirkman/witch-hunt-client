@@ -72,6 +72,10 @@ body {
   // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
 }
 
+.input {
+  text-transform: uppercase;
+}
+
 .info-card-villager, .info-card-prophet, .info-card-witch {
   background-image: url('./images/info-card-villager.jpg');
   background-position: center top;

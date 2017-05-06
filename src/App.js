@@ -131,9 +131,11 @@ class App extends Component {
   joinLobby(e){
     e.preventDefault()
     // either a lobby create or lobby join
+    let username = this.state.username.toLowerCase();
     if(this.state.create){
       this.state.ws.emit('create', {username: this.state.username, botCount: this.state.botCount})
     } else {
+      let lobby = this.state.joinLobbyId.toLowerCase();
       this.state.ws.emit('join', {username: this.state.username, lobbyId: this.state.joinLobbyId})
     }
   }
