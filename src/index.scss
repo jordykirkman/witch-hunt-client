@@ -79,6 +79,7 @@ body {
 .info-card-villager, .info-card-prophet, .info-card-witch {
   background-image: url('./images/info-card-villager.jpg');
   background-position: center top;
+  border: solid 1px #fff;
   @include box-shadow;
   &.notification {
     padding: .25rem;
@@ -99,9 +100,6 @@ body {
   }
   &.is-me {
     border: solid 1px limegreen;
-  }
-  &.info-card-villager {
-    border: solid 1px #fff;
   }
   &.info-card-prophet.is-dawn.is-me {
     border: solid 1px goldenrod;
@@ -135,6 +133,12 @@ body {
   }
   &.caves {
     background-image: url('./images/cave.png');
+  }
+  &.witches {
+    background-color: darkred;
+  }
+  &.villagers {
+    background-color: #90AFA0;
   }
 }
 
@@ -174,6 +178,12 @@ body {
   font-size: 2rem;
   font-family: 'Overlock SC', cursive;
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
+}
+
+.button.leave-lobby {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .player-notification {

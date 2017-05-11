@@ -38,12 +38,13 @@ class App extends Component {
     this.readyUp            = this.readyUp.bind(this)
     this.skipVote           = this.skipVote.bind(this)
     this.joinLobby          = this.joinLobby.bind(this)
+    this.leaveLobby         = this.leaveLobby.bind(this)
     this.toggleCreateLobby  = this.toggleCreateLobby.bind(this)
   }
 
   componentDidMount() {
     const socket = this.state.ws
-    const token = window.localStorage.getItem('witch-hunt')
+    const token = window.sessionStorage.getItem('witch-hunt')
     const self = this
     socket.on('connect', function(){
       console.log('connected', socket.id)
@@ -66,7 +67,7 @@ class App extends Component {
     socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
       let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
-      window.localStorage.setItem('witch-hunt', session);
+      window.sessionStorage.setItem('witch-hunt', session);
     })
 
     socket.on('playerUpdate', function(ioEvent){
@@ -109,7 +110,8 @@ class App extends Component {
   }
 
   handleNameChange(event) {
-    this.setState({username: event.target.value})
+    let username = event.target.value.toLowerCase()    
+    this.setState({username: username})
   }
 
   handleBotCount(event) {
@@ -117,7 +119,19 @@ class App extends Component {
   }
 
   handleLobbyName() {
-    this.setState({joinLobbyId: event.target.value})
+    let lobbyName = event.target.value.toLowerCase()
+    this.setState({joinLobbyId: lobbyName})
+  }
+
+  leaveLobby() {
+    // setting the leaveCurrentLobby var allows us to easilly have a confirmation message
+    if(this.state.leaveCurrentLobby){
+      this.setState({leaveCurrentLobby: false})
+      window.sessionStorage.removeItem('witch-hunt')
+      this.state.ws.emit('leaveLobby', {lobbyId: this.state.lobbyId})
+      return
+    }
+    this.setState({leaveCurrentLobby: true})
   }
 
   skipVote() {
@@ -131,7 +145,6 @@ class App extends Component {
   joinLobby(e){
     e.preventDefault()
     // either a lobby create or lobby join
-    let username = this.state.username.toLowerCase();
     if(this.state.create){
       this.state.ws.emit('create', {username: this.state.username, botCount: this.state.botCount})
     } else {
@@ -159,7 +172,6 @@ class App extends Component {
   render() {
     let self = this,
       settingClass = this.state.lobbyId.split('-')[1]
-
 
     let skippedPlayers = this.state.players.filter(function(player){
       return player.skip
@@ -245,15 +257,15 @@ class App extends Component {
       gameIcon = villagersLogo
     }
     let timeIcon = dawnLogo
-      if(this.state.time === 'day'){
-        timeIcon = sunLogo
-      }
-      if(this.state.time === 'night'){
-        timeIcon = moonLogo
-      }
+    if(this.state.time === 'day'){
+      timeIcon = sunLogo
+    }
+    if(this.state.time === 'night'){
+      timeIcon = moonLogo
+    }
 
     return (
-      <div className={`App container is-${this.state.time} ${settingClass}`}>
+      <div className={`App container is-${this.state.time} ${settingClass} ${this.state.winner}`}>
         <div className='column'>
           {this.state.playerNotification &&
             <div className={`player-notification ${this.state.notificationClass} ${this.state.showNotification ? 'show' : ''}`}>
@@ -261,6 +273,9 @@ class App extends Component {
                 {this.state.playerNotification}
               </div>
             </div>
+          }
+          {this.state.lobbyId &&
+            <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
           }
           <div className="column">
             {this.state.winner &&
@@ -276,22 +291,50 @@ class App extends Component {
               </div>
             }
             {!this.state.lobbyId &&
-              <div className="lobby-name">
-                Witch Hunt
-                <img className="instructions-image" src={instructionsImage}/>
+              <div>
+                <div className="lobby-name">
+                  Witch Hunt
+                  <img className="instructions-image" src={instructionsImage} alt="Witch hunt instructions"/>
+                </div>
+                <div className="columns">
+                  <div className='column is-third'>
+                    <h3>Dawn</h3>
+                    The Prophet chooses a player and sees their true identity to warn the village. 20% chance to fail.
+                  </div>
+                  <div className='column is-third'>
+                    <h3>Day</h3>
+                    The village members identify the guilty who is then put to death. 20% chance the player survives.
+                  </div>
+                  <div className='column is-third'>
+                    <h3>Night</h3>
+                    The hiding monster chooses a victim. 20% chance the victim survives.
+                  </div>
+                </div>
               </div>
             }
             {this.state.lobbyId &&
               <div className="lobby-name">{this.state.lobbyId}</div>
             }
-            {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 &&
+            {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 && !this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Start Game</button>
             }
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            {this.state.instructions &&
+            {this.state.instructions && !this.state.winner &&
               <div className="instructions">{this.state.instructions}</div>
+            }
+            {this.state.winner &&
+              <div className="instructions">{this.state.instructions}</div>
+            }
+            {this.state.time === "dawn" && this.state.user.role === "prophet" &&
+              <div className="instructions">{this.state.prophetText}</div>
+            }
+            {this.state.time === "night" && this.state.user.role === "witch" &&
+              <div className="instructions">{this.state.witchText}</div>
+            }
+            {this.state.time === "day" &&
+              <div className="instructions">{this.state.dayText}</div>
             }
             {this.state.players.length < 4 && this.state.lobbyId !== '' &&
               <h3>{this.state.players.length}/4 players ready</h3>
@@ -357,7 +400,7 @@ class UserCard extends React.Component {
         <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
           <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
-            {this.props.player.isDead || this.state.showRole &&
+            {this.props.player.isDead &&
               <div className="player-role">
                 {this.props.player.role}
               </div>
