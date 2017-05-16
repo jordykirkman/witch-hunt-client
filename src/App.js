@@ -1,13 +1,25 @@
 import React, { Component } from 'react';
-import farmLogo from './farm.svg';
+import Particle from './classes/particle.js';
+import PlayerCard from './classes/player-card';
+import io from 'socket.io-client';
+import './App.css';
+
+// images
 import sunLogo from './sun.svg';
 import moonLogo from './moon.svg';
 import dawnLogo from './dawn.svg';
 import witchesLogo from './witches.svg';
 import villagersLogo from './villagers.svg';
 import instructionsImage from './images/instructions.png';
-import io from 'socket.io-client';
-import './App.css';
+import smokeTexture from './images/smoke_white.png';
+
+// sounds
+import door_creak from './sounds/door_creak.mp3'
+import cup_drop from './sounds/cup_drop.mp3'
+import twig_snap from './sounds/twig_snap.mp3'
+
+let particles = []
+let canvasContext
 
 class App extends Component {
   constructor(props) {
@@ -27,7 +39,13 @@ class App extends Component {
       create:             true,
       started:            false,
       winner:             null,
-      time:               'dawn'
+      time:               'night',
+      mistSettings:       {
+        canvasWidth:      600
+      },
+      cup_drop:           new Audio(cup_drop),
+      door_creak:         new Audio(door_creak),
+      twig_snap:          new Audio(twig_snap),
     };
 
     this.handleLobby        = this.handleLobby.bind(this)
@@ -40,6 +58,11 @@ class App extends Component {
     this.joinLobby          = this.joinLobby.bind(this)
     this.leaveLobby         = this.leaveLobby.bind(this)
     this.toggleCreateLobby  = this.toggleCreateLobby.bind(this)
+
+    this.generateRandom     = this.generateRandom.bind(this)
+    this.draw               = this.draw.bind(this)
+    this.update             = this.update.bind(this)
+
   }
 
   componentDidMount() {
@@ -52,6 +75,91 @@ class App extends Component {
         self.handleLobby.call(self, null, token)
       }
     })
+    let canvas = document.getElementById('canvas')
+    let appContainer = document.getElementById('app')
+    let imageObj = new Image()
+    var particleCount = 20
+    var maxVelocity = 1.5
+    var canvasWidth = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600
+    console.log(document.width)
+    var canvasHeight = 350
+    let targetFPS = 33
+    let mistSettings = {
+      particles:      particles,
+      particleCount:  particleCount,
+      maxVelocity:    maxVelocity,
+      targetFPS:      targetFPS,
+      canvasWidth:    canvasWidth,
+      canvasHeight:   canvasHeight
+    }
+    this.setState({mistSettings: mistSettings})
+
+    // Once the image has been downloaded then set the image on all of the particles
+    imageObj.onload = function() {
+        particles.forEach(function(particle) {
+            particle.setImage(imageObj);
+        });
+    };
+
+    // Once the callback is arranged then set the source of the image
+    imageObj.src = smokeTexture;
+
+    if (canvas.getContext) {
+
+        // Set the context variable so it can be re-used
+        canvasContext = canvas.getContext('2d');
+
+        // Create the particles and set their initial positions and velocities
+        for(var i=0; i < particleCount; ++i){
+            var particle = new Particle(canvasContext, canvasWidth, canvasHeight);
+            
+            // Set the position to be inside the canvas bounds
+            particle.setPosition(this.generateRandom(0, canvasWidth), this.generateRandom(0, canvasHeight));
+            
+            // Set the initial velocity to be either random and either negative or positive
+            particle.setVelocity(this.generateRandom(-maxVelocity, maxVelocity), this.generateRandom(-maxVelocity, maxVelocity));
+            particles.push(particle);
+        }
+    }
+
+    if (canvasContext) {
+        setInterval(function() {
+          if(self.state.time !== 'night'){
+            return
+          }
+          // Update the scene befoe drawing
+          self.update();
+
+          // Draw the scene
+          self.draw();
+        }, 1000 / targetFPS);
+    }
+
+  }
+
+  // A function to generate a random number between 2 values
+  generateRandom(min, max){
+      return Math.random() * (max - min) + min;
+  }
+
+  // The function to draw the scene
+  draw() {
+    // Clear the drawing surface
+    canvasContext.clearRect(0, 0, 600, 500);
+    // give it a transparent background
+    canvasContext.fillStyle = "rgba(0, 0, 0, 0)";
+    canvasContext.fillRect(0, 0, 600, 500);
+    // Go through all of the particles and draw them.
+    particles.forEach(function(particle) {
+        particle.draw();
+    });
+  }
+
+  // Update the scene
+  update() {
+      particles.forEach(function(particle) {
+          particle.update();
+      });
   }
 
   handleLobby(event, token) {
@@ -68,6 +176,13 @@ class App extends Component {
       self.setState({lobbyId: ioEvent.lobbyId})
       let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
       window.sessionStorage.setItem('witch-hunt', session);
+    })
+
+    socket.on('audio', function(ioEvent){
+      if(self.state.audioDisabled){
+        return
+      }
+      self.state[ioEvent.fileName].play()
     })
 
     socket.on('playerUpdate', function(ioEvent){
@@ -149,7 +264,7 @@ class App extends Component {
       this.state.ws.emit('create', {username: this.state.username, botCount: this.state.botCount})
     } else {
       let lobby = this.state.joinLobbyId.toLowerCase();
-      this.state.ws.emit('join', {username: this.state.username, lobbyId: this.state.joinLobbyId})
+      this.state.ws.emit('join', {username: this.state.username, lobbyId: lobby})
     }
   }
 
@@ -178,7 +293,7 @@ class App extends Component {
     })
 
     let playerCardList = this.state.players.map(function(player){
-      return <UserCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
+      return <PlayerCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
     })
 
     let intro = <div className="columns">
@@ -264,9 +379,12 @@ class App extends Component {
       timeIcon = moonLogo
     }
 
+    let startText = !this.state.user.isCreator ? 'waiting for host to start' : this.state.players.length.toString() + ' villagers ready'
+
     return (
-      <div className={`App container is-${this.state.time} ${settingClass} ${this.state.winner}`}>
-        <div className='column'>
+      <div id="app" className={`App container is-${this.state.time} ${settingClass} ${this.state.winner}`}>
+        <canvas id="canvas" width={`${this.state.mistSettings.canvasWidth}`} height="500"></canvas>
+        <div className='column main-column'>
           {this.state.playerNotification &&
             <div className={`player-notification ${this.state.notificationClass} ${this.state.showNotification ? 'show' : ''}`}>
               <div className='player-notification-text'>
@@ -280,33 +398,41 @@ class App extends Component {
           <div className="column">
             {this.state.winner &&
               <div className="game-state-icon">
-                <img src={gameIcon} className="App-logo winner" alt="logo" />
+                <img src={gameIcon} className="App-logo winner" alt={`${this.state.time}`} />
                 <h2>{this.state.winner}</h2>
               </div>
             }
             {!this.state.winner && this.state.lobbyId &&
               <div className="game-state-icon">
-                <img src={timeIcon} className="App-logo time-icon" alt="logo" />
-                <img src={farmLogo} className="farm-icon" alt="logo" />
+                <img src={timeIcon} className="App-logo time-icon" alt={`${this.state.time}`} />
               </div>
             }
             {!this.state.lobbyId &&
               <div>
                 <div className="lobby-name">
                   Witch Hunt
-                  <img className="instructions-image" src={instructionsImage} alt="Witch hunt instructions"/>
+                  <img className="how-to-play-image" src={instructionsImage} alt="Witch hunt how-to-play"/>
                 </div>
                 <div className="columns">
                   <div className='column is-third'>
-                    <h3>Dawn</h3>
+                    <img src={dawnLogo} className="how-to-play-icon" alt="witch hunt dawn" />
+                    <h4 className="title is-4">
+                      Dawn
+                    </h4>
                     The Prophet chooses a player and sees their true identity to warn the village. 20% chance to fail.
                   </div>
                   <div className='column is-third'>
-                    <h3>Day</h3>
+                    <img src={sunLogo} className="how-to-play-icon" alt="witch hunt day" />
+                    <h4 className="title is-4">
+                      Day
+                    </h4>
                     The village members identify the guilty who is then put to death. 20% chance the player survives.
                   </div>
                   <div className='column is-third'>
-                    <h3>Night</h3>
+                    <img src={moonLogo} className="how-to-play-icon" alt="witch hunt night" />
+                    <h4 className="title is-4">
+                      Night
+                    </h4>
                     The hiding monster chooses a victim. 20% chance the victim survives.
                   </div>
                 </div>
@@ -336,8 +462,10 @@ class App extends Component {
             {this.state.time === "day" &&
               <div className="instructions">{this.state.dayText}</div>
             }
-            {this.state.players.length < 4 && this.state.lobbyId !== '' &&
-              <h3>{this.state.players.length}/4 players ready</h3>
+            {!this.state.started &&
+              <h3>
+                {this.state.players.length < 4 ? this.state.players.length.toString() + '/4 players ready' : startText}
+              </h3>
             }
           </div>
           <div className="column">
@@ -345,71 +473,6 @@ class App extends Component {
             <div className={`columns is-mobile is-multiline`}>
               {playerCardList}
             </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
-
-class UserCard extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      showRole: false
-    }
-    this.handleVote = this.handleVote.bind(this)
-  }
-
-  handleVote(event) {
-    let self = this
-    // do nothing if the game hasnt started yet
-    if(!this.props.ready){
-      return
-    }
-    // if it's you, remind yourself of your role
-    if(this.props.player.id === this.props.user.id){
-      this.setState({showRole: true})
-      setTimeout(function(){
-        self.setState({showRole: false})
-      }, 4000)
-      return
-    }
-    // send a kill if it's night and you are a monster
-    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'witch'){
-      this.props.ws.emit('kill', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.from})
-      return
-    }
-    // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
-    }
-    // send a kill/unkill vote if it's day
-    if(this.props.time === 'day'){
-      this.props.ws.emit('submitVote', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user.id})
-    }
-  }
-
-  render() {
-    let myCard    = this.props.player.id === this.props.user.id,
-      myCardClass = myCard ? 'is-me' : '',
-      myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
-
-    return (
-      <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop" onClick={this.handleVote}>
-        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
-          <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
-          <div className="subtitle">
-            {this.props.player.isDead &&
-              <div className="player-role">
-                {this.props.player.role}
-              </div>
-            }
-            {!this.props.player.isDead &&
-              <div className="vote-count">
-                {this.props.player.killVote.length.toString()}
-              </div>
-            }
           </div>
         </div>
       </div>
