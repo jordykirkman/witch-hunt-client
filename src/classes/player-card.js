@@ -32,7 +32,7 @@ module.exports = class PlayerCard extends React.Component {
       myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
     return (
-      <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop" onClick={this.handleVote}>
+      <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
         <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
           <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">

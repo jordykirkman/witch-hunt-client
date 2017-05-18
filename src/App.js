@@ -13,10 +13,12 @@ import villagersLogo from './villagers.svg';
 import instructionsImage from './images/instructions.png';
 import smokeTexture from './images/smoke_white.png';
 
-// sounds
-import door_creak from './sounds/door_creak.mp3'
-import cup_drop from './sounds/cup_drop.mp3'
-import twig_snap from './sounds/twig_snap.mp3'
+// sounds can enable these when theres a native wrapper
+// import door_creak from './sounds/door_creak.mp3'
+// import cup_drop from './sounds/cup_drop.mp3'
+// import twig_snap from './sounds/twig_snap.mp3'
+// import glass_drop from './sounds/glass_drop.mp3'
+// import branch_break from './sounds/branch_break.mp3'
 
 let particles = []
 let canvasContext
@@ -43,9 +45,11 @@ class App extends Component {
       mistSettings:       {
         canvasWidth:      600
       },
-      cup_drop:           new Audio(cup_drop),
-      door_creak:         new Audio(door_creak),
-      twig_snap:          new Audio(twig_snap),
+      // cup_drop:           new Audio(cup_drop),
+      // door_creak:         new Audio(door_creak),
+      // twig_snap:          new Audio(twig_snap),
+      // glass_drop:         new Audio(glass_drop),
+      // branch_break:       new Audio(branch_break),
     };
 
     this.handleLobby        = this.handleLobby.bind(this)
@@ -178,12 +182,12 @@ class App extends Component {
       window.sessionStorage.setItem('witch-hunt', session);
     })
 
-    socket.on('audio', function(ioEvent){
-      if(self.state.audioDisabled){
-        return
-      }
-      self.state[ioEvent.fileName].play()
-    })
+    // socket.on('audio', function(ioEvent){
+    //   if(self.state.audioDisabled){
+    //     return
+    //   }
+    //   self.state[ioEvent.fileName].play()
+    // })
 
     socket.on('playerUpdate', function(ioEvent){
       // find and update my user reference
@@ -329,11 +333,11 @@ class App extends Component {
 
           </div>
           <div className="column is-12">
-            <form onSubmit={this.joinLobby}>
+            <form onSubmit={this.joinLobby} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
               <div className="field">
                 <label className="label">Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Your Name" value={this.state.username} onChange={this.handleNameChange}/>
+                  <input className="input" type="text" placeholder="Your Name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value={this.state.username} onChange={this.handleNameChange}/>
                 </p>
               </div>
               <div className="field">
@@ -352,7 +356,7 @@ class App extends Component {
                 <div className="field">
                   <label className="label">Game Name</label>
                   <p className="control">
-                    <input className="input" type="text" placeholder="Lobby Id" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                    <input className="input" type="text" placeholder="Lobby Id" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
                   </p>
                 </div>
               }
@@ -447,22 +451,17 @@ class App extends Component {
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            {this.state.instructions && !this.state.winner &&
-              <div className="instructions">{this.state.instructions}</div>
-            }
-            {this.state.winner &&
-              <div className="instructions">{this.state.instructions}</div>
-            }
+            <div className="instructions">{this.state.instructions}</div>
             {this.state.time === "dawn" && this.state.user.role === "prophet" &&
-              <div className="instructions">{this.state.prophetText}</div>
+              <div className="role-instructions">{this.state.prophetText}</div>
             }
             {this.state.time === "night" && this.state.user.role === "witch" &&
-              <div className="instructions">{this.state.witchText}</div>
+              <div className="role-instructions">{this.state.witchText}</div>
             }
             {this.state.time === "day" &&
-              <div className="instructions">{this.state.dayText}</div>
+              <div className="role-instructions">{this.state.dayText}</div>
             }
-            {!this.state.started &&
+            {!this.state.started && this.state.lobbyId &&
               <h3>
                 {this.state.players.length < 4 ? this.state.players.length.toString() + '/4 players ready' : startText}
               </h3>

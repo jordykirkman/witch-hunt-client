@@ -20,6 +20,28 @@ $primary: #a20000;
 @import "../node_modules/bulma/bulma";
 @import url('https://fonts.googleapis.com/css?family=Overlock+SC');
 
+//fadeInUp
+@keyframes fadeInUp {
+	0% {
+    opacity: 0;
+    -webkit-transform: translateY(10px);
+            transform: translateY(10px);
+    -webkit-animation-timing-function: cubic-bezier(0, 0.59, 0.375, 1);
+            animation-timing-function: cubic-bezier(0, 0.59, 0.375, 1);
+  }
+  100% {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+            transform: translateY(0);
+  }
+}
+.fadeInUp{
+    -webkit-animation: fadeInUp forwards 2s ease-in; /* Safari, Chrome and Opera > 12.1 */
+        -moz-animation: fadeInUp forwards 2s ease-in; /* Firefox < 16 */
+        -ms-animation: fadeInUp forwards 2s ease-in; /* Internet Explorer */
+            animation: fadeInUp forwards 2s ease-in;
+}
+
 @mixin box-shadow() {
   -webkit-box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.5);
   -moz-box-shadow: 0px 3px 10px 0px rgba(0,0,0,0.5);
@@ -74,7 +96,7 @@ body {
     color: #fff;
   }
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#e0ab8f+0,e5d7b3+26,dbcfad+38,82726a+100 */
-  background-color: rgb(198, 178, 145); /* Old browsers */
+  background-color: #A2A897; /* Old browsers */
   // background: -moz-linear-gradient(top,  #e0ab8f 0%, #e5d7b3 26%, #dbcfad 38%, #82726a 100%); /* FF3.6-15 */
   // background: -webkit-linear-gradient(top,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* Chrome10-25,Safari5.1-6 */
   // background: linear-gradient(to bottom,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
@@ -196,6 +218,14 @@ body {
   font-family: 'Overlock SC', cursive;
   font-size: 1.5rem;
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
+}
+
+.role-instructions {
+  font-family: 'Overlock SC', cursive;
+  font-size: 1.25rem;
+  text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
+  background-color: rgba(0,0,0,0.5);
+  padding: 10px;
 }
 
 .lobby-name {
