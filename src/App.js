@@ -333,30 +333,18 @@ class App extends Component {
 
           </div>
           <div className="column is-12">
-            <form onSubmit={this.joinLobby} autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+            <form onSubmit={this.joinLobby}>
               <div className="field">
                 <label className="label">Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Your Name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value={this.state.username} onChange={this.handleNameChange}/>
-                </p>
-              </div>
-              <div className="field">
-                <p className="control">
-                  <span className="select">
-                    <select onChange={this.handleBotCount}>
-                      <option>0</option>
-                      <option>2</option>
-                      <option>4</option>
-                      <option>6</option>
-                    </select>
-                  </span>
+                  <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.username} onChange={this.handleNameChange}/>
                 </p>
               </div>
               {!this.state.create &&
                 <div className="field">
                   <label className="label">Game Name</label>
                   <p className="control">
-                    <input className="input" type="text" placeholder="Lobby Id" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                    <input className="input" type="text" placeholder="Lobby Id" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
                   </p>
                 </div>
               }
