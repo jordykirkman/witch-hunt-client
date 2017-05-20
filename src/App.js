@@ -218,6 +218,13 @@ class App extends Component {
       self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
     })
 
+    socket.on('errorResponse', function(ioEvent){
+      self.setState(ioEvent);
+      setTimeout(function(){
+        self.setState({error: null});
+      }, 5000)
+    })
+
     socket.on('disconnect', function(){
 
     });
@@ -384,6 +391,7 @@ class App extends Component {
               </div>
             </div>
           }
+          {this.state.error}
           {this.state.lobbyId &&
             <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
           }
