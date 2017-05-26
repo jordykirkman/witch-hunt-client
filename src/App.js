@@ -42,6 +42,7 @@ class App extends Component {
       started:            false,
       winner:             null,
       time:               'night',
+      error:              'That village is pointing fingers and murmering currently. Try again when the monster is gone.',
       mistSettings:       {
         canvasWidth:      600
       },
@@ -391,7 +392,11 @@ class App extends Component {
               </div>
             </div>
           }
-          {this.state.error}
+          {this.state.error &&
+            <div className="error fadeInDown">
+              {this.state.error}
+            </div>
+          }
           {this.state.lobbyId &&
             <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
           }

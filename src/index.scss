@@ -64,6 +64,13 @@ body {
   }
 }
 
+.error {
+  position: absolute;
+  width: 100%;
+  left: 0;
+  top: 0;
+}
+
 .is-night {
   color: #e5d7b3;
   .title {
