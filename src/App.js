@@ -42,7 +42,7 @@ class App extends Component {
       started:            false,
       winner:             null,
       time:               'night',
-      error:              'That village is pointing fingers and murmering currently. Try again when the monster is gone.',
+      error:              null,
       mistSettings:       {
         canvasWidth:      600
       },
