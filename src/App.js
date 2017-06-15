@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Particle from './classes/particle.js';
 import PlayerCard from './classes/player-card';
+import TrialCard from './classes/trial-card';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -30,6 +31,7 @@ class App extends Component {
       botCount:           0,
       username:           '',
       user:               {},
+      chat:               [],
       lobbyId:            '',
       joinLobbyId:        '',
       instructions:       null,
@@ -75,7 +77,6 @@ class App extends Component {
     const token = window.sessionStorage.getItem('witch-hunt')
     const self = this
     socket.on('connect', function(){
-      console.log('connected', socket.id)
       if(token){
         self.handleLobby.call(self, null, token)
       }
@@ -86,7 +87,6 @@ class App extends Component {
     var particleCount = 20
     var maxVelocity = 1.5
     var canvasWidth = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600
-    console.log(document.width)
     var canvasHeight = 350
     let targetFPS = 33
     let mistSettings = {
@@ -217,6 +217,11 @@ class App extends Component {
 
     socket.on('notification', function(ioEvent){
       self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
+    })
+
+    socket.on('message', function(ioEvent){
+      let chat = self.state.chat.push(ioEvent.message)
+      self.state.setState({chat: chat})
     })
 
     socket.on('errorResponse', function(ioEvent){
@@ -461,6 +466,9 @@ class App extends Component {
             }
             {this.state.time === "day" &&
               <div className="role-instructions">{this.state.dayText}</div>
+            }
+            {this.state.time === "trial" &&
+              <TrialCard onTrial={this.state.gameSettings.onTrial} chat={this.state.chat}/>
             }
             {!this.state.started && this.state.lobbyId &&
               <h3>
