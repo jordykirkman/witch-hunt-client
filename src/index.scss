@@ -110,6 +110,14 @@ body {
   // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
 }
 
+.is-trial {
+  color: #fff;
+  .title {
+    color: #fff;
+  }
+  background-color: #A2A897;
+}
+
 .input {
   text-transform: uppercase;
 }

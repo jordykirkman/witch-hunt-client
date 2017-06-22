@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-module.exports = class TrialCard extends React.Component {
+module.exports = class TrialCard extends Component {
   constructor(props) {
     super(props)
-    this.trialVote = this.trialVote.bind(this)
+    this.yesVote = this.yesVote.bind(this)
+    this.noVote  = this.noVote.bind(this)
   }
 
   yesVote(event) {

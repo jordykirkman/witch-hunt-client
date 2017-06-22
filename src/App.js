@@ -45,6 +45,7 @@ class App extends Component {
       winner:             null,
       time:               'night',
       error:              null,
+      onTrial:            null,
       mistSettings:       {
         canvasWidth:      600
       },
@@ -220,7 +221,7 @@ class App extends Component {
     })
 
     socket.on('message', function(ioEvent){
-      let chat = self.state.chat.push(ioEvent.message)
+      let chat = self.state.chat.push(ioEvent)
       self.state.setState({chat: chat})
     })
 
@@ -468,7 +469,7 @@ class App extends Component {
               <div className="role-instructions">{this.state.dayText}</div>
             }
             {this.state.time === "trial" &&
-              <TrialCard onTrial={this.state.gameSettings.onTrial} chat={this.state.chat}/>
+              <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
             }
             {!this.state.started && this.state.lobbyId &&
               <h3>
