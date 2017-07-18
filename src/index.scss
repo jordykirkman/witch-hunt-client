@@ -122,6 +122,18 @@ body {
   text-transform: uppercase;
 }
 
+.player-card {
+  position: relative;
+  .voted-mark {
+    position: absolute;
+    top: 0;
+    background-color: #ccc;
+    border-radius: 50%;
+    z-index: 9999;
+    right: 0;
+  }
+}
+
 .info-card-villager, .info-card-prophet, .info-card-witch {
   background-image: url('./images/info-card-villager.jpg');
   background-position: center top;

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import checkmark from '../images/checkmark.svg';
 module.exports = class PlayerCard extends React.Component {
   constructor(props) {
     super(props)
@@ -9,6 +10,9 @@ module.exports = class PlayerCard extends React.Component {
     let self = this
     // do nothing if the game hasnt started yet of you are dead
     if(!this.props.ready || this.props.player.isDead){
+      return
+    }
+    if(this.props.player.id === this.props.user.id){
       return
     }
     // send a kill if it's night and you are a monster
@@ -31,8 +35,11 @@ module.exports = class PlayerCard extends React.Component {
       myCardClass = myCard ? 'is-me' : '',
       myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
+    let voted = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : ''
+
     return (
-      <div className="column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
+      <div className="player-card column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
+        {voted}
         <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
           <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">

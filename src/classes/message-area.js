@@ -23,11 +23,13 @@ module.exports = class MessageArea extends Component {
   }
 
   render() {
-    let chatList = this.props.chat.join('\n')
+    const chatList = this.props.chat.map((message) =>
+      <li>{message}</li>
+    )
     return (
       <div className="column fadeInUp">
-        <div className="messages">
-          {this.props.chatList}
+        <div className="message-container">
+          <ul className="defense-message-list">{chatList}</ul>
         </div>
         <form onSubmit={this.sendMessage}>
           <input value={this.state.message} onChange={this.handleMessagleChange}/>
