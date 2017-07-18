@@ -16,12 +16,12 @@ module.exports = class TrialCard extends Component {
   render() {
     return (
       <div className="column fadeInUp">
-        {this.props.onTrial.name}
+        {this.props.onTrial.username}
         <div className="messages">
           {this.props.chat}
         </div>
-        <div className="vote-btn" onClick={this.yesVote}>Guilty</div>
-        <div className="vote-btn" onClick={this.noVote}>Innocent</div>
+        <div className="button is-primary vote-btn" onClick={this.yesVote}>Guilty</div>
+        <div className="button is-primary vote-btn" onClick={this.noVote}>Innocent</div>
       </div>
     );
   }

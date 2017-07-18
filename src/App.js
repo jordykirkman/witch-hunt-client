@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Particle from './classes/particle.js';
 import PlayerCard from './classes/player-card';
 import TrialCard from './classes/trial-card';
+import MessageArea from './classes/message-area';
 import io from 'socket.io-client';
 import './App.css';
 
@@ -221,8 +222,10 @@ class App extends Component {
     })
 
     socket.on('message', function(ioEvent){
-      let chat = self.state.chat.push(ioEvent)
-      self.state.setState({chat: chat})
+      let chat = []
+      chat.push(self.state.chat);
+      chat.push(ioEvent.message)
+      self.setState({chat: chat})
     })
 
     socket.on('errorResponse', function(ioEvent){
@@ -469,7 +472,14 @@ class App extends Component {
               <div className="role-instructions">{this.state.dayText}</div>
             }
             {this.state.time === "trial" &&
-              <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
+              <div>
+              {this.state.onTrial.id === this.state.user.id &&
+                <MessageArea user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
+              }
+              {this.state.onTrial.id !== this.state.user.id &&
+                <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
+              }
+              </div>
             }
             {!this.state.started && this.state.lobbyId &&
               <h3>
