@@ -14,11 +14,16 @@ module.exports = class TrialCard extends Component {
   }
 
   render() {
+    const chatList = this.props.chat.map((chat) =>
+      <li>{chat.message}</li>
+    )
     return (
       <div className="column fadeInUp">
-        {this.props.onTrial.username}
-        <div className="messages">
-          {this.props.chat}
+        <div className="trial-user-name">
+          {this.props.onTrial.username}
+        </div>
+        <div className="message-container">
+          <ul className="message-list">{chatList}</ul>
         </div>
         <div className="button is-primary vote-btn" onClick={this.yesVote}>Guilty</div>
         <div className="button is-primary vote-btn" onClick={this.noVote}>Innocent</div>
