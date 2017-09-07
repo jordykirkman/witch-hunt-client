@@ -3,7 +3,7 @@ import Particle from './classes/particle.js';
 import PlayerCard from './classes/player-card';
 import TrialCard from './classes/trial-card';
 import MessageArea from './classes/message-area';
-import io from 'socket.io-client';
+import { trialState } from './state-defaults';
 import './App.css';
 
 // images
@@ -27,50 +27,22 @@ let canvasContext
 
 class App extends Component {
   constructor(props) {
-    super(props);
-    this.state = {
-      botCount:           0,
-      username:           '',
-      user:               {},
-      chat:               [],
-      lobbyId:            '',
-      joinLobbyId:        '',
-      instructions:       null,
-      playerNotification: null,
-      showNotification:   false,
-      notificationClass:  '',
-      players:            [],
-      ws:                 io(),
-      create:             true,
-      started:            false,
-      winner:             null,
-      time:               'night',
-      error:              null,
-      onTrial:            null,
-      mistSettings:       {
-        canvasWidth:      600
-      },
-      // cup_drop:           new Audio(cup_drop),
-      // door_creak:         new Audio(door_creak),
-      // twig_snap:          new Audio(twig_snap),
-      // glass_drop:         new Audio(glass_drop),
-      // branch_break:       new Audio(branch_break),
-    };
+    super(props)
+    this.state                = trialState
+    this.handleLobby          = this.handleLobby.bind(this)
+    this.handleLobbyName      = this.handleLobbyName.bind(this)
+    this.handleNameChange     = this.handleNameChange.bind(this)
+    this.handleBotCount       = this.handleBotCount.bind(this)
+    this.playerNotification   = this.playerNotification.bind(this)
+    this.readyUp              = this.readyUp.bind(this)
+    this.skipVote             = this.skipVote.bind(this)
+    this.joinLobby            = this.joinLobby.bind(this)
+    this.leaveLobby           = this.leaveLobby.bind(this)
+    this.toggleCreateLobby    = this.toggleCreateLobby.bind(this)
 
-    this.handleLobby        = this.handleLobby.bind(this)
-    this.handleLobbyName    = this.handleLobbyName.bind(this)
-    this.handleNameChange   = this.handleNameChange.bind(this)
-    this.handleBotCount     = this.handleBotCount.bind(this)
-    this.playerNotification = this.playerNotification.bind(this)
-    this.readyUp            = this.readyUp.bind(this)
-    this.skipVote           = this.skipVote.bind(this)
-    this.joinLobby          = this.joinLobby.bind(this)
-    this.leaveLobby         = this.leaveLobby.bind(this)
-    this.toggleCreateLobby  = this.toggleCreateLobby.bind(this)
-
-    this.generateRandom     = this.generateRandom.bind(this)
-    this.draw               = this.draw.bind(this)
-    this.update             = this.update.bind(this)
+    this.generateRandom       = this.generateRandom.bind(this)
+    this.draw                 = this.draw.bind(this)
+    this.update               = this.update.bind(this)
 
   }
 
@@ -79,9 +51,9 @@ class App extends Component {
     const token = window.sessionStorage.getItem('witch-hunt')
     const self = this
     socket.on('connect', function(){
-      if(token){
-        self.handleLobby.call(self, null, token)
-      }
+      // if(token){
+      //   self.handleLobby.call(self, null, token)
+      // }
     })
     let canvas = document.getElementById('canvas')
     let appContainer = document.getElementById('app')
@@ -307,7 +279,7 @@ class App extends Component {
 
   render() {
     let self = this,
-      settingClass = this.state.lobbyId.split('-')[1]
+      settingClass = this.state.lobbyId ? this.state.lobbyId.split('-')[1] : ''
 
     let skippedPlayers = this.state.players.filter(function(player){
       return player.skip

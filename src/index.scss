@@ -7,6 +7,7 @@
 $night: #132028; // night
 $day: #FFECA7; // day
 $primary: #a20000;
+$secondary: #6bb3e0;
 // $pink: #ffb3b3; // Add pink
 // $family-serif: "Georgia", serif; // Add a serif family
 
@@ -52,10 +53,22 @@ body {
   background-color: #1f1f1f;
 }
 
-.button.is-primary {
+.button.is-primary, .button.is-secondary {
   font-size: 1.5rem;
   font-family: 'Overlock SC', cursive;
   @include box-shadow;
+}
+.button.is-secondary {
+  border: solid 2px darken($secondary, 10%);
+  text-shadow: 0px 2px 2px rgba(0, 0, 0, 1);
+  color: #fff;
+  background-color: $secondary;
+  &:hover {
+    border: solid 2px darken($secondary, 20%);
+    background-color: solid 2px darken($secondary, 10%);
+  }
+}
+.button.is-primary {
   border: solid 2px darken($primary, 10%);
   text-shadow: 0px 2px 2px rgba(0, 0, 0, 1);
   &:hover {
@@ -136,29 +149,32 @@ body {
 }
 
 .info-card-villager, .info-card-prophet, .info-card-witch {
-  background-image: url('./images/info-card-villager.jpg');
+  // background-image: url('./images/info-card-villager.jpg');
+  border: double;
+  border-color: #f2f2f2;
+  background-color: #000;
   background-position: center top;
-  border: solid 1px #666;
   @include box-shadow;
   &.notification {
     padding: .25rem;
     .title {
       font-family: 'Overlock SC', cursive;
-      font-size: 1.5rem;
+      font-size: 1.25rem;
+      line-height: 20px;
       text-transform: uppercase;
       margin-bottom: .25rem;
-      color: #3b3b3b;
+      color: #f2f2f2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .subtitle {
       margin-top: 0;
-      color: #3b3b3b;
+      color: #f2f2f2;
     }
   }
   &.is-me {
-    border: solid 1px limegreen;
+    border-color: limegreen;
   }
   &.info-card-prophet.is-dawn.is-me {
     border: solid 1px goldenrod;
@@ -347,6 +363,9 @@ body {
             animation: Spooky-intro infinite 2s linear;
   }
 }
+.vote-btn {
+  margin: 0 10px;
+}
 
 .trial-user-name {
   text-transform: uppercase;
@@ -360,7 +379,8 @@ body {
   overflow: hidden;
   margin-bottom: 10px;
   height: 80px;
-  background-color: rgba(0, 0, 0, 0.7);
+  border: double;
+  background-color: #000;
   .message-list {
     position: absolute;
     bottom: 0;
