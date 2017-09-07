@@ -7,7 +7,6 @@ module.exports = class PlayerCard extends React.Component {
   }
 
   handleVote(event) {
-    let self = this
     // do nothing if the game hasnt started yet of you are dead
     if(!this.props.ready || this.props.player.isDead){
       return
@@ -35,13 +34,14 @@ module.exports = class PlayerCard extends React.Component {
       myCardClass = myCard ? 'is-me' : '',
       myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
-    let voted = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : ''
+    let voted   = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
+      fontSize  = this.props.player.username.length < 7 ? '1.25rem' : `${220 / this.props.player.username.length}px`
 
     return (
       <div className="player-card column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
         {voted}
         <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
-          <div className="title">{myCard ? '(you)' : ''}{this.props.player.username}</div>
+          <div className="title" style={{fontSize: fontSize}}>{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
             <div className="player-role">
               {this.props.player.isDead ? this.props.player.role : `${myCard ? this.props.player.role : '???'}`}

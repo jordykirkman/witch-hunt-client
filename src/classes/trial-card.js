@@ -26,7 +26,7 @@ module.exports = class TrialCard extends Component {
           <ul className="message-list">{chatList}</ul>
         </div>
         <div className="button is-primary vote-btn" onClick={this.yesVote}>Guilty</div>
-        <div className="button is-primary vote-btn" onClick={this.noVote}>Innocent</div>
+        <div className="button is-secondary vote-btn" onClick={this.noVote}>Innocent</div>
       </div>
     );
   }

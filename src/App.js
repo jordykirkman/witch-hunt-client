@@ -3,7 +3,7 @@ import Particle from './classes/particle.js';
 import PlayerCard from './classes/player-card';
 import TrialCard from './classes/trial-card';
 import MessageArea from './classes/message-area';
-import { trialState } from './state-defaults';
+import { defaultState } from './state-defaults';
 import './App.css';
 
 // images
@@ -28,7 +28,7 @@ let canvasContext
 class App extends Component {
   constructor(props) {
     super(props)
-    this.state                = trialState
+    this.state                = defaultState
     this.handleLobby          = this.handleLobby.bind(this)
     this.handleLobbyName      = this.handleLobbyName.bind(this)
     this.handleNameChange     = this.handleNameChange.bind(this)
@@ -51,9 +51,9 @@ class App extends Component {
     const token = window.sessionStorage.getItem('witch-hunt')
     const self = this
     socket.on('connect', function(){
-      // if(token){
-      //   self.handleLobby.call(self, null, token)
-      // }
+      if(token){
+        self.handleLobby.call(self, null, token)
+      }
     })
     let canvas = document.getElementById('canvas')
     let appContainer = document.getElementById('app')
