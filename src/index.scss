@@ -78,9 +78,13 @@ body {
 }
 
 .error {
-  position: absolute;
+  position: fixed;
   width: 100%;
+  padding: 6px;
+  color: #fff;
+  font-weight: bold;
   left: 0;
+  background-color: rgba(255,0,0,0.7);
   top: 0;
 }
 
