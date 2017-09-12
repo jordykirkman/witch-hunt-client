@@ -15,7 +15,7 @@ module.exports = class TrialCard extends Component {
 
   render() {
     const chatList = this.props.chat.map((chat) =>
-      <li>{chat.message}</li>
+      <li>{chat.from}: {chat.message}</li>
     )
     return (
       <div className="column fadeInUp">

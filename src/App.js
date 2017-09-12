@@ -195,21 +195,21 @@ class App extends Component {
 
     socket.on('message', function(ioEvent){
       let chat = []
-      chat.push(self.state.chat);
-      chat.push(ioEvent.message)
-      self.setState({chat: chat})
+      chat.push(self.state.messages)
+      chat.push(ioEvent)
+      self.setState({messages: chat})
     })
 
     socket.on('errorResponse', function(ioEvent){
-      self.setState(ioEvent);
+      self.setState(ioEvent)
       setTimeout(function(){
-        self.setState({error: null});
+        self.setState({error: null})
       }, 5000)
     })
 
     socket.on('disconnect', function(){
 
-    });
+    })
   }
 
   toggleCreateLobby(event) {
@@ -446,10 +446,10 @@ class App extends Component {
             {this.state.time === "trial" &&
               <div>
               {this.state.onTrial.id === this.state.user.id &&
-                <MessageArea user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
+                <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
               }
               {this.state.onTrial.id !== this.state.user.id &&
-                <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.chat} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
+                <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
               }
               </div>
             }

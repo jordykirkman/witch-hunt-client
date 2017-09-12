@@ -4,7 +4,7 @@ const defaultState = {
   botCount:           0,
   username:           '',
   user:               {},
-  chat:               [],
+  messages:           [],
   lobbyId:            '',
   joinLobbyId:        '',
   instructions:       null,
@@ -43,7 +43,7 @@ const trialState = {
   "time":"trial",
   "winner":null,
   "onTrial":{"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"role":"witch","skip":false,"username":"prini","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
-  "chat": [
+  "messages": [
     {"message": "uuuuh", "from": "R3g1uZKu8_GrBh8cAAAC"},
     {"message": "I'm villager for real", "from": "R3g1uZKu8_GrBh8cAAAC"},
     {"message": "It's poky!!", "from": "R3g1uZKu8_GrBh8cAAAC"},

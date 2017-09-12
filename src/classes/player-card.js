@@ -30,12 +30,13 @@ module.exports = class PlayerCard extends React.Component {
   }
 
   render() {
-    let myCard    = this.props.player.id === this.props.user.id,
-      myCardClass = myCard ? 'is-me' : '',
-      myDeadClass = this.props.player.isDead ? 'is-dead' : 'is-alive'
+    let myCard      = this.props.player.id === this.props.user.id,
+      myCardClass   = myCard ? 'is-me' : '',
+      myMarkedClass = this.props.player.isMarked ? 'is-marked' : '',
+      myDeadClass   = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
-    let voted   = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
-      fontSize  = this.props.player.username.length < 7 ? '1.25rem' : `${220 / this.props.player.username.length}px`
+    let voted       = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
+      fontSize      = this.props.player.username.length < 7 ? '1.25rem' : `${220 / this.props.player.username.length}px`
 
     return (
       <div className="player-card column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
