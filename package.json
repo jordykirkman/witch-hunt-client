@@ -9,15 +9,32 @@
     "socket.io-client": "^1.7.3"
   },
   "devDependencies": {
-    "node-sass": "^4.5.2",
-    "react-scripts": "0.9.5"
+    "babel": "^6.23.0",
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.0",
+    "babel-plugin-react-intl": "^2.3.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-react": "^6.24.1",
+    "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^2.1.2",
+    "file-loader": "^0.11.2",
+    "html-webpack-plugin": "^2.29.0",
+    "image-webpack-loader": "^3.4.2",
+    "node-sass": "^4.5.3",
+    "react-svg-loader": "^1.1.1",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.18.2",
+    "webpack": "^3.5.6"
   },
   "scripts": {
     "build-css": "node-sass src/ -o src/",
     "watch-css": "npm run build-css && node-sass src/ -o src/ --watch --recursive",
     "start-js": "react-scripts start",
     "start": "npm-run-all -p watch-css start-js",
-    "build": "npm run build-css && react-scripts build",
+    "build:dev": "webpack --env=development --config webpack.config.js",
+    "watch": "webpack --watch --env=development --config webpack.config.js",
+    "build:prod": "webpack --env=production --config webpack.config.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   }
