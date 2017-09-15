@@ -195,6 +195,9 @@ body {
   &.is-dead {
     background-image: url('./images/info-card-villager-dead.jpg');
   }
+  &.is-marked {
+    background-color: red;
+  }
 }
 
 .how-to-play-icon {
