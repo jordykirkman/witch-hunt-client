@@ -22,9 +22,6 @@ module.exports = class TrialCard extends Component {
         <div className="trial-user-name">
           {this.props.onTrial.username}
         </div>
-        <div className="message-container">
-          <ul className="message-list">{chatList}</ul>
-        </div>
         <div className="button is-primary vote-btn" onClick={this.yesVote}>Guilty</div>
         <div className="button is-secondary vote-btn" onClick={this.noVote}>Innocent</div>
       </div>

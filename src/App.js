@@ -52,7 +52,7 @@ class App extends Component {
     const self = this
     socket.on('connect', function(){
       if(token){
-        self.handleLobby.call(self, null, token)
+        self.handleLobby(null, null, token)
       }
     })
     let canvas = document.getElementById('canvas')
@@ -141,7 +141,7 @@ class App extends Component {
       });
   }
 
-  handleLobby(event, token) {
+  handleLobby(e, n, token) {
     const self = this
     const socket = this.state.ws
 
@@ -194,9 +194,8 @@ class App extends Component {
     })
 
     socket.on('message', function(ioEvent){
-      let chat = []
-      chat.push(self.state.messages)
-      chat.push(ioEvent)
+      console.log(ioEvent)
+      let chat = self.state.messages.concat([ioEvent])
       self.setState({messages: chat})
     })
 
@@ -205,6 +204,10 @@ class App extends Component {
       setTimeout(function(){
         self.setState({error: null})
       }, 5000)
+    })
+
+    socket.on('badToken', function(){
+      window.sessionStorage.removeItem('witch-hunt')
     })
 
     socket.on('disconnect', function(){
@@ -226,7 +229,7 @@ class App extends Component {
     this.setState({botCount: event.target.value})
   }
 
-  handleLobbyName() {
+  handleLobbyName(event) {
     let lobbyName = event.target.value.toLowerCase()
     this.setState({joinLobbyId: lobbyName})
   }
@@ -326,14 +329,14 @@ class App extends Component {
               <div className="field">
                 <label className="label">Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.username} onChange={this.handleNameChange}/>
+                  <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" value={this.state.username} onChange={this.handleNameChange}/>
                 </p>
               </div>
               {!this.state.create &&
                 <div className="field">
                   <label className="label">Game Name</label>
                   <p className="control">
-                    <input className="input" type="text" placeholder="Lobby Id" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                    <input className="input" type="text" placeholder="Lobby Id" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
                   </p>
                 </div>
               }
@@ -443,15 +446,11 @@ class App extends Component {
             {this.state.time === "day" &&
               <div className="role-instructions">{this.state.dayText}</div>
             }
-            {this.state.time === "trial" &&
-              <div>
-              {this.state.onTrial.id === this.state.user.id &&
-                <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
-              }
-              {this.state.onTrial.id !== this.state.user.id &&
-                <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
-              }
-              </div>
+            {this.state.lobbyId &&
+              <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
+            }
+            {this.state.time === "trial" && this.state.onTrial.id !== this.state.user.id &&
+              <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
             {!this.state.started && this.state.lobbyId &&
               <h3>

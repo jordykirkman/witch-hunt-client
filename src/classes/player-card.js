@@ -20,8 +20,8 @@ module.exports = class PlayerCard extends React.Component {
       return
     }
     // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
+    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'villager'){
+      this.props.ws.emit('watch', {user: this.props.player.id, lobbyId: this.props.lobbyId})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
@@ -36,12 +36,15 @@ module.exports = class PlayerCard extends React.Component {
       myDeadClass   = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
     let voted       = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
+      fontSize      = '1.25rem'
+    if(this.props.player.username){
       fontSize      = this.props.player.username.length < 7 ? '1.25rem' : `${220 / this.props.player.username.length}px`
+    }
 
     return (
       <div className="player-card column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
         {voted}
-        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
+        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} ${myMarkedClass} is-${this.props.time}`}>
           <div className="title" style={{fontSize: fontSize}}>{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
             <div className="player-role">
