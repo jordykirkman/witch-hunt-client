@@ -7,16 +7,13 @@ module.exports = class TrialCard extends Component {
   }
 
   yesVote(event) {
-    this.props.ws.emit('trialVote', {vote: true, lobbyId: this.props.lobbyId, from: this.props.user.id})
+    this.props.ws.emit('trialVote', {vote: 'yes', lobbyId: this.props.lobbyId, from: this.props.user.id})
   }
   noVote(event) {
-    this.props.ws.emit('trialVote', {vote: false, lobbyId: this.props.lobbyId, from: this.props.user.id})
+    this.props.ws.emit('trialVote', {vote: 'no', lobbyId: this.props.lobbyId, from: this.props.user.id})
   }
 
   render() {
-    const chatList = this.props.chat.map((message) =>
-      <li>{message.username}: {message.message}</li>
-    )
     return (
       <div className="column fadeInUp">
         <div className="trial-user-name">

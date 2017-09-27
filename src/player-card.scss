@@ -1,0 +1,72 @@
+.player-card {
+  position: relative;
+  .marks-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 30px;
+    width: 100%;
+    z-index: 9999;
+    display: flex;
+    justify-content: flex-end;
+    .voted-mark, .watching-mark, .marking-mark {
+      width: 30px;
+      height: 30px;
+      background-color: #333;
+      border-radius: 50%;
+      padding: 4px;
+    }
+    .marking-mark {
+      background-color: #000;
+    }
+  }
+}
+
+.info-card-villager, .info-card-prophet, .info-card-witch {
+  // background-image: url('./images/info-card-villager.jpg');
+  border: solid 1px #666;
+  background-color: #000;
+  background-position: center top;
+  @include box-shadow;
+  &.notification {
+    padding: .75rem .25rem;
+    .title {
+      font-family: 'Overlock SC', cursive;
+      font-size: 1.25rem;
+      line-height: 20px;
+      text-transform: uppercase;
+      margin-bottom: .25rem;
+      color: #f2f2f2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .subtitle {
+      margin-top: 0;
+      color: #f2f2f2;
+    }
+  }
+  &.is-me {
+    border-color: limegreen;
+  }
+  &.info-card-prophet.is-dawn.is-me {
+    border: solid 1px goldenrod;
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+    box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
+  }
+  &.info-card-witch.is-night.is-me {
+    border: solid 1px darkred;
+    -webkit-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+    -moz-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+    box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
+  }
+  &.is-marked {
+    background-image: url('./images/pentagram.svg');
+    background-position: center;
+    background-size: cover;
+  }
+  &.is-dead {
+    background-image: url('./images/info-card-villager-dead.jpg');
+  }
+}

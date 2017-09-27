@@ -4,7 +4,7 @@ import PlayerCard from './classes/player-card';
 import TrialCard from './classes/trial-card';
 import MessageArea from './classes/message-area';
 import { defaultState } from './state-defaults';
-import './App.css';
+import './index.scss';
 
 // images
 import sunLogo from './sun.svg';
@@ -48,13 +48,76 @@ class App extends Component {
 
   componentDidMount() {
     const socket = this.state.ws
-    const token = window.sessionStorage.getItem('witch-hunt')
+    const token = window.localStorage.getItem('witch-hunt')
     const self = this
+
     socket.on('connect', function(){
       if(token){
         self.handleLobby(null, null, token)
       }
     })
+
+    socket.on('joined', function(ioEvent){
+      self.setState({lobbyId: ioEvent.lobbyId})
+      let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
+      window.localStorage.setItem('witch-hunt', session);
+    })
+
+    // socket.on('audio', function(ioEvent){
+    //   if(self.state.audioDisabled){
+    //     return
+    //   }
+    //   self.state[ioEvent.fileName].play()
+    // })
+
+    socket.on('playerUpdate', function(ioEvent){
+      // find and update my user reference
+      for(let n =0; n < ioEvent.players.length; n++){
+        if(ioEvent.players[n]['id'] === socket.id){
+          self.setState({user: ioEvent.players[n]})
+        }
+      }
+      self.setState({players: ioEvent.players})
+    })
+
+    // changes something about the game state
+    socket.on('gameUpdate', function(ioEvent){
+      // if we are updating the player list
+      if(ioEvent.players){
+        // find and update my user reference
+        for(let n =0; n < ioEvent.players.length; n++){
+          if(ioEvent.players[n]['id'] === socket.id){
+            self.setState({user: ioEvent.players[n]})
+          }
+        }
+      }
+      // update the game state like normal
+      self.setState(ioEvent)
+    })
+
+    socket.on('notification', function(ioEvent){
+      self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
+    })
+
+    socket.on('propegateMessage', function(ioEvent){
+      let chat = self.state.messages.concat([ioEvent])
+      self.setState({messages: chat})
+      let messageListHeight      = document.querySelector('.message-list').offsetHeight,
+        messageContainer         = document.querySelector('.message-container')
+      messageContainer.scrollTop = messageListHeight - messageContainer.offsetHeight
+    })
+
+    socket.on('errorResponse', function(ioEvent){
+      self.setState(ioEvent)
+      setTimeout(function(){
+        self.setState({error: null})
+      }, 5000)
+    })
+
+    socket.on('badToken', function(){
+      window.localStorage.removeItem('witch-hunt')
+    })
+
     let canvas = document.getElementById('canvas')
     let appContainer = document.getElementById('app')
     let imageObj = new Image()
@@ -136,9 +199,9 @@ class App extends Component {
 
   // Update the scene
   update() {
-      particles.forEach(function(particle) {
-          particle.update();
-      });
+    particles.forEach(function(particle) {
+      particle.update();
+    });
   }
 
   handleLobby(e, n, token) {
@@ -150,69 +213,6 @@ class App extends Component {
       let userId = JSON.parse(token).userId
       socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
     }
-
-    socket.on('joined', function(ioEvent){
-      self.setState({lobbyId: ioEvent.lobbyId})
-      let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
-      window.sessionStorage.setItem('witch-hunt', session);
-    })
-
-    // socket.on('audio', function(ioEvent){
-    //   if(self.state.audioDisabled){
-    //     return
-    //   }
-    //   self.state[ioEvent.fileName].play()
-    // })
-
-    socket.on('playerUpdate', function(ioEvent){
-      // find and update my user reference
-      for(let n =0; n < ioEvent.players.length; n++){
-        if(ioEvent.players[n]['id'] === socket.id){
-          self.setState({user: ioEvent.players[n]})
-        }
-      }
-      self.setState({players: ioEvent.players})
-    })
-
-    // changes something about the game state
-    socket.on('gameUpdate', function(ioEvent){
-      // if we are updating the player list
-      if(ioEvent.players){
-        // find and update my user reference
-        for(let n =0; n < ioEvent.players.length; n++){
-          if(ioEvent.players[n]['id'] === socket.id){
-            self.setState({user: ioEvent.players[n]})
-          }
-        }
-      }
-      // update the game state like normal
-      self.setState(ioEvent)
-    })
-
-    socket.on('notification', function(ioEvent){
-      self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
-    })
-
-    socket.on('message', function(ioEvent){
-      console.log(ioEvent)
-      let chat = self.state.messages.concat([ioEvent])
-      self.setState({messages: chat})
-    })
-
-    socket.on('errorResponse', function(ioEvent){
-      self.setState(ioEvent)
-      setTimeout(function(){
-        self.setState({error: null})
-      }, 5000)
-    })
-
-    socket.on('badToken', function(){
-      window.sessionStorage.removeItem('witch-hunt')
-    })
-
-    socket.on('disconnect', function(){
-
-    })
   }
 
   toggleCreateLobby(event) {
@@ -238,7 +238,7 @@ class App extends Component {
     // setting the leaveCurrentLobby var allows us to easilly have a confirmation message
     if(this.state.leaveCurrentLobby){
       this.setState({leaveCurrentLobby: false})
-      window.sessionStorage.removeItem('witch-hunt')
+      window.localStorage.removeItem('witch-hunt')
       this.state.ws.emit('leaveLobby', {lobbyId: this.state.lobbyId})
       return
     }
@@ -288,15 +288,14 @@ class App extends Component {
       return player.skip
     })
 
-    let playerCardList = this.state.players.map(function(player){
-      return <PlayerCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
+    let playerCardList = this.state.players.map(function(player, index){
+      return <PlayerCard key={index} time={self.state.time} ready={self.state.started} winner={self.state.winner} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} watching={self.state.watching} marking={self.state.marking} user={self.state.user} />
     })
 
     let intro = <div className="columns">
       <div className="column">
         {this.state.started && this.state.time === 'day' &&
           <div>
-            <h3>{skippedPlayers.length.toString()} votes to skip</h3>
             <a className="button is-primary" onClick={this.skipVote}>Skip</a>
           </div>
         }
@@ -404,18 +403,11 @@ class App extends Component {
                 </div>
                 <div className="columns">
                   <div className='column is-third'>
-                    <img src={dawnLogo} className="how-to-play-icon" alt="witch hunt dawn" />
-                    <h4 className="title is-4">
-                      Dawn
-                    </h4>
-                    The Prophet chooses a player and sees their true identity to warn the village. 20% chance to fail.
-                  </div>
-                  <div className='column is-third'>
                     <img src={sunLogo} className="how-to-play-icon" alt="witch hunt day" />
                     <h4 className="title is-4">
                       Day
                     </h4>
-                    The village members identify the guilty who is then put to death. 20% chance the player survives.
+                    The village members identify the guilty who is then put on trial. After their defense, vote to spare them or put them to death.
                   </div>
                   <div className='column is-third'>
                     <img src={moonLogo} className="how-to-play-icon" alt="witch hunt night" />
@@ -449,7 +441,7 @@ class App extends Component {
             {this.state.lobbyId &&
               <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
-            {this.state.time === "trial" && this.state.onTrial.id !== this.state.user.id &&
+            {this.state.time === "trial" && this.state.onTrial.id !== this.state.user.id && !this.state.winner &&
               <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
             {!this.state.started && this.state.lobbyId &&
