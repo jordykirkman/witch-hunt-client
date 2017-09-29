@@ -82,6 +82,15 @@ body {
   top: 0;
 }
 
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .how-to-play-icon {
+    margin-right: 10px;
+  }
+}
+
 .is-night {
   color: #e5d7b3;
   .title {
@@ -348,14 +357,19 @@ body {
 }
 
 .top-nav {
-  position: absolute;
   width: 100%;
-  top: 0;
-  left: 0;
   display: flex;
   justify-content: flex-end;
   .button {
     margin-left: 10px;
+  }
+}
+
+ul.instructions-list {
+  > li {
+    border-bottom: solid 1px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
   }
 }
 
