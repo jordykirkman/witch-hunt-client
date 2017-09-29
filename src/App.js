@@ -349,7 +349,7 @@ class App extends Component {
               }
               <div className="field">
                 <p className="control">
-                  <input className="button is-primary" type="submit" value="Join" onClick={this.handleLobby}/>
+                  <input className="button is-primary" type="submit" value={`${this.state.create ? "Create Game" : "Join"}`} onClick={this.handleLobby}/>
                 </p>
               </div>
             </form>
