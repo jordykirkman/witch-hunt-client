@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Particle from './classes/particle.js';
+import LobbyLink from './classes/lobby-link.js';
 import PlayerCard from './classes/player-card';
 import TrialCard from './classes/trial-card';
 import MessageArea from './classes/message-area';
@@ -47,9 +48,16 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const socket = this.state.ws
-    const token = window.localStorage.getItem('witch-hunt')
-    const self = this
+    const socket  = this.state.ws,
+      token       = window.localStorage.getItem('witch-hunt'),
+      self        = this,
+      query       = window.location.search.substring(1),
+      qvars       = query.split("="),
+      qlobbyId    = qvars[1]
+
+    if(qlobbyId){
+      this.setState({joinLobbyId: qlobbyId, create: false})
+    }
 
     socket.on('connect', function(){
       if(token){
@@ -341,7 +349,7 @@ class App extends Component {
               }
               <div className="field">
                 <p className="control">
-                  <input className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}/>
+                  <input className="button is-primary" type="submit" value="Join" onClick={this.handleLobby}/>
                 </p>
               </div>
             </form>
@@ -380,9 +388,14 @@ class App extends Component {
               {this.state.error}
             </div>
           }
-          {this.state.lobbyId &&
-            <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
-          }
+          <div className="top-nav">
+            {this.state.lobbyId &&
+              <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
+            }
+            {this.state.lobbyId && !this.state.started &&
+              <LobbyLink time={this.state.time} lobbyId={this.state.lobbyId}/>
+            }
+          </div>
           <div className="column">
             {this.state.winner &&
               <div className="game-state-icon">
