@@ -65,6 +65,13 @@ class App extends Component {
       }
     })
 
+    // Update the count down every 1 second
+    let x = setInterval(function() {
+      if(self.state.timer > 0){
+        self.setState({timer: self.state.timer - 1})
+      }
+    }, 1000);
+
     socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
       let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
@@ -124,6 +131,10 @@ class App extends Component {
 
     socket.on('badToken', function(){
       window.localStorage.removeItem('witch-hunt')
+    })
+
+    socket.on('setTimer', function(ioEvent){
+      self.setState({timer: ioEvent.timer})
     })
 
     let canvas = document.getElementById('canvas')
@@ -389,6 +400,11 @@ class App extends Component {
             </div>
           }
           <div className="top-nav">
+            {this.state.timer > 0 &&
+              <div className="timer">
+                {this.state.timer}s
+              </div>
+            }
             {this.state.lobbyId &&
               <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
             }
@@ -448,7 +464,7 @@ class App extends Component {
                 </div>
               </div>
             }
-            {this.state.lobbyId &&
+            {this.state.lobbyId && !this.state.started &&
               <div className="lobby-name">{this.state.lobbyId}</div>
             }
             {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 && !this.state.winner &&
@@ -457,14 +473,13 @@ class App extends Component {
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            <div className="instructions">{this.state.instructions}</div>
-            {this.state.time === "dawn" && this.state.user.role === "prophet" &&
-              <div className="role-instructions">{this.state.prophetText}</div>
+            {this.state.started && this.state.time === "night" && this.state.user.role === "villager" &&
+              <div className="role-instructions">{this.state.villagerText}</div>
             }
-            {this.state.time === "night" && this.state.user.role === "witch" &&
+            {this.state.started && this.state.time === "night" && this.state.user.role === "witch" &&
               <div className="role-instructions">{this.state.witchText}</div>
             }
-            {this.state.time === "day" &&
+            {this.state.started && this.state.time === "day" &&
               <div className="role-instructions">{this.state.dayText}</div>
             }
             {this.state.lobbyId &&

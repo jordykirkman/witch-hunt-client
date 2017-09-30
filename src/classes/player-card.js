@@ -35,6 +35,7 @@ module.exports = class PlayerCard extends React.Component {
     let myCard      = this.props.player.id === this.props.user.id,
       myCardClass   = myCard ? 'is-me' : '',
       myMarkedClass = this.props.player.isMarked ? 'is-marked' : '',
+      witches       = this.props.player.role === "witch" && this.props.user.role === "witch",
       myDeadClass   = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
     let voted       = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
@@ -57,7 +58,7 @@ module.exports = class PlayerCard extends React.Component {
           <div className="title" style={{fontSize: fontSize}}>{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
             <div className="player-role">
-              {this.props.player.isDead || this.props.winner ? this.props.player.role : `${myCard ? this.props.player.role : '???'}`}
+              {this.props.player.isDead || this.props.winner ? this.props.player.role : `${myCard || witches ? this.props.player.role : '???'}`}
             </div>
           </div>
         </div>

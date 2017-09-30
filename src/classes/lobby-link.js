@@ -10,7 +10,7 @@ module.exports = class TrialCard extends Component {
 
   copyLink(event) {
     var textarea            = document.createElement("textarea");
-    textarea.textContent    = `${window.location.href}?lobby=${this.props.lobbyId}`;
+    textarea.textContent    = `${window.location.protocol}//${window.location.host}${window.location.pathname}?lobby=${this.props.lobbyId}`;
     textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
     document.body.appendChild(textarea);
     textarea.select();

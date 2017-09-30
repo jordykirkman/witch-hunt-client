@@ -21,6 +21,7 @@ const defaultState = {
   onTrial:            null,
   watching:           null,
   marking:            null,
+  timer:              0,
   mistSettings:       {
     canvasWidth:      600
   }
