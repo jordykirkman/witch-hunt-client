@@ -42,6 +42,7 @@ const trialState = {
   "prophetText":"Select someone to reveal thier secrets.",
   "witchText":"Select who shouldn't live any longer.",
   "dayText":"Select someone who is guilty or choose to skip today.",
+  "villagerText":"Select someone to spy on (you will be seen as missing) or stay home.",
   "lobbyId":"restless-bog-14",
   "started":true,
   "time":"trial",

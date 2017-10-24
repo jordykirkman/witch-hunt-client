@@ -37,6 +37,7 @@ class App extends Component {
     this.playerNotification   = this.playerNotification.bind(this)
     this.readyUp              = this.readyUp.bind(this)
     this.skipVote             = this.skipVote.bind(this)
+    this.stayHome             = this.stayHome.bind(this)
     this.joinLobby            = this.joinLobby.bind(this)
     this.leaveLobby           = this.leaveLobby.bind(this)
     this.toggleCreateLobby    = this.toggleCreateLobby.bind(this)
@@ -268,6 +269,10 @@ class App extends Component {
     this.state.ws.emit('submitVote', {skip: true, lobbyId: this.state.lobbyId, from: this.state.user.id})
   }
 
+  stayHome() {
+    this.state.ws.emit('watch', {skip: true, lobbyId: this.state.lobbyId, from: this.state.user.id})
+  }
+
   readyUp() {
     this.state.ws.emit('ready', {lobbyId: this.state.lobbyId})
   }
@@ -316,6 +321,11 @@ class App extends Component {
         {this.state.started && this.state.time === 'day' &&
           <div>
             <a className="button is-primary" onClick={this.skipVote}>Skip</a>
+          </div>
+        }
+        {this.state.started && this.state.time === 'night' &&
+          <div>
+            <a className="button is-primary" onClick={this.stayHome}>Stay Home</a>
           </div>
         }
       </div>
