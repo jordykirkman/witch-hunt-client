@@ -1,7 +1,5 @@
-import io from 'socket.io-client';
-const ws = io({transports: ['websocket'], upgrade: false})
 const defaultState = {
-  ws:                 ws,
+  ws:                 null,
   botCount:           0,
   username:           '',
   user:               {},
@@ -28,7 +26,7 @@ const defaultState = {
 }
 
 const trialState = {
-  ws:                 ws,
+  ws:                 null,
   mistSettings:       {
     canvasWidth:      600
   },
@@ -59,7 +57,7 @@ const trialState = {
 }
 
 const nightState = {
-  ws:                 ws,
+  ws:                 null,
   mistSettings:       {
     canvasWidth:      600
   },
@@ -89,7 +87,7 @@ const nightState = {
 }
 
 const nightWitchState = {
-  ws:                 ws,
+  ws:                 null,
   mistSettings:       {
     canvasWidth:      600
   },

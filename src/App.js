@@ -1,20 +1,18 @@
-import React, { Component } from 'react';
-import Particle from './classes/particle.js';
-import LobbyLink from './classes/lobby-link.js';
-import PlayerCard from './classes/player-card';
-import TrialCard from './classes/trial-card';
-import MessageArea from './classes/message-area';
-import { defaultState } from './state-defaults';
-import './index.scss';
+import React,{ Component }  from 'react';
+import Particle             from './classes/particle.js';
+import LobbyLink            from './classes/lobby-link.js';
+import PlayerCard           from './classes/player-card';
+import TrialCard            from './classes/trial-card';
+import GameIcon             from './classes/game-icon';
+import Intro                from './classes/intro';
+import Instructions         from './classes/instructions';
+import MessageArea          from './classes/message-area';
+import { defaultState }     from './state-defaults';
+import io                   from 'socket.io-client';
+import                           './index.scss';
 
 // images
-import sunLogo from './sun.svg';
-import moonLogo from './moon.svg';
-import dawnLogo from './dawn.svg';
-import witchesLogo from './witches.svg';
-import villagersLogo from './villagers.svg';
-import instructionsImage from './images/instructions.png';
-import smokeTexture from './images/smoke_white.png';
+import smokeTexture         from './images/smoke_white.png';
 
 // sounds can enable these when theres a native wrapper
 // import door_creak from './sounds/door_creak.mp3'
@@ -60,11 +58,9 @@ class App extends Component {
       this.setState({joinLobbyId: qlobbyId, create: false})
     }
 
-    socket.on('connect', function(){
-      if(token){
-        self.handleLobby(null, null, token)
-      }
-    })
+    if(token){
+      self.handleLobby(null, null, token)
+    }
 
     // Update the count down every 1 second
     let x = setInterval(function() {
@@ -73,7 +69,106 @@ class App extends Component {
       }
     }, 1000);
 
-    socket.on('joined', function(ioEvent){
+    let canvas      = document.getElementById('canvas'),
+      appContainer  = document.getElementById('root'),
+      imageObj      = new Image(),
+      particleCount = 20,
+      maxVelocity   = 1.5,
+      canvasWidth   = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600,
+      canvasHeight  = 350,
+      targetFPS     = 33,
+      mistSettings  = {
+      particles:      particles,
+      particleCount:  particleCount,
+      maxVelocity:    maxVelocity,
+      targetFPS:      targetFPS,
+      canvasWidth:    canvasWidth,
+      canvasHeight:   canvasHeight
+    }
+
+    this.setState({mistSettings: mistSettings})
+
+    // Once the image has been downloaded then set the image on all of the particles
+    imageObj.onload = function() {
+      particles.forEach(function(particle) {
+        particle.setImage(imageObj);
+      })
+    }
+
+    // Once the callback is arranged then set the source of the image
+    imageObj.src = smokeTexture;
+
+    if (canvas.getContext) {
+
+        // Set the context variable so it can be re-used
+        canvasContext = canvas.getContext('2d');
+
+        // Create the particles and set their initial positions and velocities
+        for(var i=0; i < particleCount; ++i){
+          var particle = new Particle(canvasContext, canvasWidth, canvasHeight);
+          
+          // Set the position to be inside the canvas bounds
+          particle.setPosition(this.generateRandom(0, canvasWidth), this.generateRandom(0, canvasHeight));
+          
+          // Set the initial velocity to be either random and either negative or positive
+          particle.setVelocity(this.generateRandom(-maxVelocity, maxVelocity), this.generateRandom(-maxVelocity, maxVelocity));
+          particles.push(particle);
+        }
+    }
+
+    if (canvasContext) {
+      setInterval(function() {
+        if(self.state.time !== 'night'){
+          return
+        }
+        // Update the scene befoe drawing
+        self.update();
+
+        // Draw the scene
+        self.draw();
+      }, 1000 / targetFPS);
+    }
+
+  }
+
+  // A function to generate a random number between 2 values
+  generateRandom(min, max){
+    return Math.random() * (max - min) + min;
+  }
+
+  // The function to draw the scene
+  draw() {
+    // Clear the drawing surface
+    canvasContext.clearRect(0, 0, 600, 500);
+    // give it a transparent background
+    canvasContext.fillStyle = "rgba(0, 0, 0, 0)";
+    canvasContext.fillRect(0, 0, 600, 500);
+    // Go through all of the particles and draw them.
+    particles.forEach(function(particle) {
+        particle.draw();
+    });
+  }
+
+  // Update the scene
+  update() {
+    particles.forEach(function(particle) {
+      particle.update();
+    });
+  }
+
+  handleLobby(e, n, token) {
+    const self  = this,
+      socket    = io({transports: ['websocket'], upgrade: false})
+
+    this.setState({ws: socket})
+
+    if(token){
+      let lobbyId = JSON.parse(token).lobbyId,
+        userId    = JSON.parse(token).userId
+      socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
+    }
+
+socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
       let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
       window.localStorage.setItem('witch-hunt', session);
@@ -138,101 +233,6 @@ class App extends Component {
       self.setState({timer: ioEvent.timer})
     })
 
-    let canvas = document.getElementById('canvas')
-    let appContainer = document.getElementById('app')
-    let imageObj = new Image()
-    var particleCount = 20
-    var maxVelocity = 1.5
-    var canvasWidth = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600
-    var canvasHeight = 350
-    let targetFPS = 33
-    let mistSettings = {
-      particles:      particles,
-      particleCount:  particleCount,
-      maxVelocity:    maxVelocity,
-      targetFPS:      targetFPS,
-      canvasWidth:    canvasWidth,
-      canvasHeight:   canvasHeight
-    }
-    this.setState({mistSettings: mistSettings})
-
-    // Once the image has been downloaded then set the image on all of the particles
-    imageObj.onload = function() {
-        particles.forEach(function(particle) {
-            particle.setImage(imageObj);
-        });
-    };
-
-    // Once the callback is arranged then set the source of the image
-    imageObj.src = smokeTexture;
-
-    if (canvas.getContext) {
-
-        // Set the context variable so it can be re-used
-        canvasContext = canvas.getContext('2d');
-
-        // Create the particles and set their initial positions and velocities
-        for(var i=0; i < particleCount; ++i){
-            var particle = new Particle(canvasContext, canvasWidth, canvasHeight);
-            
-            // Set the position to be inside the canvas bounds
-            particle.setPosition(this.generateRandom(0, canvasWidth), this.generateRandom(0, canvasHeight));
-            
-            // Set the initial velocity to be either random and either negative or positive
-            particle.setVelocity(this.generateRandom(-maxVelocity, maxVelocity), this.generateRandom(-maxVelocity, maxVelocity));
-            particles.push(particle);
-        }
-    }
-
-    if (canvasContext) {
-        setInterval(function() {
-          if(self.state.time !== 'night'){
-            return
-          }
-          // Update the scene befoe drawing
-          self.update();
-
-          // Draw the scene
-          self.draw();
-        }, 1000 / targetFPS);
-    }
-
-  }
-
-  // A function to generate a random number between 2 values
-  generateRandom(min, max){
-      return Math.random() * (max - min) + min;
-  }
-
-  // The function to draw the scene
-  draw() {
-    // Clear the drawing surface
-    canvasContext.clearRect(0, 0, 600, 500);
-    // give it a transparent background
-    canvasContext.fillStyle = "rgba(0, 0, 0, 0)";
-    canvasContext.fillRect(0, 0, 600, 500);
-    // Go through all of the particles and draw them.
-    particles.forEach(function(particle) {
-        particle.draw();
-    });
-  }
-
-  // Update the scene
-  update() {
-    particles.forEach(function(particle) {
-      particle.update();
-    });
-  }
-
-  handleLobby(e, n, token) {
-    const self = this
-    const socket = this.state.ws
-
-    if(token){
-      let lobbyId = JSON.parse(token).lobbyId
-      let userId = JSON.parse(token).userId
-      socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
-    }
   }
 
   toggleCreateLobby(event) {
@@ -379,18 +379,6 @@ class App extends Component {
       </div>
     }
 
-    let gameIcon = witchesLogo
-    if(this.state.winner === 'villagers'){
-      gameIcon = villagersLogo
-    }
-    let timeIcon = dawnLogo
-    if(this.state.time === 'day'){
-      timeIcon = sunLogo
-    }
-    if(this.state.time === 'night'){
-      timeIcon = moonLogo
-    }
-
     let startText = !this.state.user.isCreator ? 'waiting for host to start' : this.state.players.length.toString() + ' villagers ready'
 
     return (
@@ -423,56 +411,9 @@ class App extends Component {
             }
           </div>
           <div className="column">
-            {this.state.winner &&
-              <div className="game-state-icon">
-                <img src={gameIcon} className="App-logo winner" alt={`${this.state.time}`} />
-                <h2>{this.state.winner}</h2>
-              </div>
-            }
-            {!this.state.winner && this.state.lobbyId &&
-              <div className="game-state-icon">
-                <img src={timeIcon} className="App-logo time-icon" alt={`${this.state.time}`} />
-              </div>
-            }
+            <GameIcon winner={this.state.winner} time={this.state.time} lobbyId={this.state.lobbyId}/>
             {!this.state.lobbyId &&
-              <div>
-                <div className="lobby-name">
-                  Witch Hunt
-                  <img className="how-to-play-image" src={instructionsImage} alt="Witch hunt how-to-play"/>
-                </div>
-                <div className="columns">
-                  <div className='column is-third'>
-                    <h4 className="title is-4">
-                      <img src={moonLogo} className="how-to-play-icon" alt="witch hunt night" />
-                      Night
-                    </h4>
-                    <ul className="instructions-list">
-                      <li>Villagers may visit one another to see if they are home or missing. 20% chance to fail.</li>
-                      <li>Monsters may choose a victim to "mark" for death. Monsters cannot mark eachother and are seen as missing.</li>
-                      <li>If a villager checks on someone else successfully, they are seen as missing.</li>
-                    </ul>
-                  </div>
-                  <div className='column is-third'>
-                    <h4 className="title is-4">
-                      <img src={sunLogo} className="how-to-play-icon" alt="witch hunt day" />
-                      Day
-                    </h4>
-                    <ul className="instructions-list">
-                      <li>The village may vote to put someone on trial (anonymously).</li>
-                      <li>When on trial, a villager may defend themselves, point blame. The others vote to spare or kill.</li>
-                    </ul>
-                  </div>
-                  <div className='column is-third'>
-                    <h4 className="title is-4">
-                      To Win
-                    </h4>
-                    <ul className="instructions-list">
-                      <li>Villagers must kill the hiding monsters.</li>
-                      <li>If living monsters are equal to unmarked/unkilled villagers, marked villagers die and monsters win.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <Intro />
             }
             {this.state.lobbyId && !this.state.started &&
               <div className="lobby-name">{this.state.lobbyId}</div>
@@ -483,15 +424,7 @@ class App extends Component {
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            {this.state.started && this.state.time === "night" && this.state.user.role === "villager" &&
-              <div className="role-instructions">{this.state.villagerText}</div>
-            }
-            {this.state.started && this.state.time === "night" && this.state.user.role === "witch" &&
-              <div className="role-instructions">{this.state.witchText}</div>
-            }
-            {this.state.started && this.state.time === "day" &&
-              <div className="role-instructions">{this.state.dayText}</div>
-            }
+            <Instructions time={this.state.time} user={this.state.user} dayText={this.state.dayText} witchText={this.state.witchText} villagerText={this.state.villagerText}/>
             {this.state.lobbyId &&
               <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
