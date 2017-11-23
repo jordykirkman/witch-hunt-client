@@ -13,6 +13,7 @@ import                           './index.scss';
 
 // images
 import smokeTexture         from './images/smoke_white.png';
+import checkmark            from '../images/checkmark.svg';
 
 // sounds can enable these when theres a native wrapper
 // import door_creak from './sounds/door_creak.mp3'
@@ -325,7 +326,12 @@ socket.on('joined', function(ioEvent){
         }
         {this.state.started && this.state.time === 'night' &&
           <div>
-            <a className="button is-primary" onClick={this.stayHome}>Stay Home</a>
+            <a className="button is-primary" onClick={this.stayHome}>
+              Stay Home
+              {this.state.watching === 'skip' &&
+                <img className="voted-mark" src={checkmark}/>
+              }
+            </a>
           </div>
         }
       </div>
@@ -424,7 +430,7 @@ socket.on('joined', function(ioEvent){
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            <Instructions time={this.state.time} user={this.state.user} dayText={this.state.dayText} witchText={this.state.witchText} villagerText={this.state.villagerText}/>
+            <Instructions started={this.state.started} time={this.state.time} user={this.state.user} dayText={this.state.dayText} witchText={this.state.witchText} villagerText={this.state.villagerText}/>
             {this.state.lobbyId &&
               <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
