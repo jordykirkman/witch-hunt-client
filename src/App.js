@@ -13,7 +13,7 @@ import                           './index.scss';
 
 // images
 import smokeTexture         from './images/smoke_white.png';
-import checkmark            from '../images/checkmark.svg';
+import checkmark            from './images/checkmark.svg';
 
 // sounds can enable these when theres a native wrapper
 // import door_creak from './sounds/door_creak.mp3'
