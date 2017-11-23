@@ -74,6 +74,12 @@ body {
     background-color: solid 2px darken($primary, 10%);
   }
 }
+.button {
+  .voted-mark {
+    width: 30px;
+    height: 30px;
+  }
+}
 
 .error {
   position: fixed;
