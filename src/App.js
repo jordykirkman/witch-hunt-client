@@ -364,6 +364,7 @@ socket.on('joined', function(ioEvent){
                 <label className="label">Name</label>
                 <p className="control">
                   <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" value={this.state.username} onChange={this.handleNameChange}/>
+                  <input className="number" type="text" value={this.state.botCount} onChange={this.handleBotCount}/>
                 </p>
               </div>
               {!this.state.create &&
