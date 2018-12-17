@@ -1,10 +1,10 @@
 var webpack = require("webpack");
 var path = require('path');
-var webpack = require('webpack');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var extractSass = new ExtractTextPlugin({
-    filename: "styles.css",
+    filename: "index.css",
+    allChunks: true
     // disable: process.env.NODE_ENV === "development"
 });
 
@@ -87,11 +87,7 @@ module.exports = function(env){
             // use style-loader in development
             fallback: "style-loader"
           })
-        },
-        {
-            test: /\.css$/,
-            loader: 'style-loader!css-loader'
-        },
+        }
       ],
       loaders: [
         {

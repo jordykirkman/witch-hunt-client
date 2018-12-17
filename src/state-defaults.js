@@ -1,6 +1,5 @@
-import io from 'socket.io-client';
 const defaultState = {
-  ws:                 io(),
+  ws:                 null,
   botCount:           0,
   username:           '',
   user:               {},
@@ -18,38 +17,104 @@ const defaultState = {
   time:               'night',
   error:              null,
   onTrial:            null,
+  watching:           null,
+  marking:            null,
+  timer:              0,
   mistSettings:       {
     canvasWidth:      600
   }
 }
 
 const trialState = {
-  ws:                 io(),
+  ws:                 null,
   mistSettings:       {
     canvasWidth:      600
   },
   user: {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
   "players": [
-    {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":"R3g1uZKu8_GrBh8cAAAC","killVote":[],"ghostVote":[]},
-    {"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"role":"witch","skip":false,"username":"pripribbkitty","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
-    {"id":"ei2W9aNW9FFSGZANAAAD","isCreator":false,"isDead":false,"role":"prophet","skip":false,"username":"pokyCuddleDumplin IV","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
-    {"id":"R_2VVCGzEHWX0IDaAAAE","isCreator":true,"isDead":false,"role":"villager","skip":false,"username":"jordy","voteFor":null,"trialVote":"R3g1uZKu8_GrBh8cAAAC","killVote":[],"ghostVote":[]}
+    {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"isMarked":true,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":"R3g1uZKu8_GrBh8cAAAC","killVote":[],"ghostVote":[]},
+    {"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"isMarked":false,"role":"witch","skip":false,"username":"pripribbkitty","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"ei2W9aNW9FFSGZANAAAD","isCreator":false,"isDead":false,"isMarked":false,"role":"prophet","skip":false,"username":"pokyCuddleDumplin IV","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"R_2VVCGzEHWX0IDaAAAE","isCreator":true,"isDead":false,"isMarked":false,"role":"villager","skip":false,"username":"jordy","voteFor":null,"trialVote":"R3g1uZKu8_GrBh8cAAAC","killVote":[],"ghostVote":[]}
+  ],
+  "prophetText":"Select someone to reveal thier secrets.",
+  "witchText":"Select who shouldn't live any longer.",
+  "dayText":"Select someone who is guilty or choose to skip today.",
+  "villagerText":"Select someone to spy on (you will be seen as missing) or stay home.",
+  "lobbyId":"restless-bog-14",
+  "started":true,
+  "time":"trial",
+  "winner":null,
+  "watching": null,
+  "onTrial":{"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"role":"witch","skip":false,"username":"prini","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+  "messages": [
+    {"message": "uuuuh", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I'm villager for real", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "It's poky!!", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "She was missing last night", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I swear", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+  ],
+}
+
+const nightState = {
+  ws:                 null,
+  mistSettings:       {
+    canvasWidth:      600
+  },
+  user: {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+  "players": [
+    {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"isMarked":true,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"isMarked":false,"role":"witch","skip":false,"username":"pripribbkitty","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"ei2W9aNW9FFSGZANAAAD","isCreator":false,"isDead":false,"isMarked":false,"role":"prophet","skip":false,"username":"pokyCuddleDumplin IV","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"R_2VVCGzEHWX0IDaAAAE","isCreator":true,"isDead":false,"isMarked":false,"role":"villager","skip":false,"username":"jordy","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]}
   ],
   "prophetText":"Select someone to reveal thier secrets.",
   "witchText":"Select who shouldn't live any longer.",
   "dayText":"Select someone who is guilty or choose to skip today.",
   "lobbyId":"restless-bog-14",
   "started":true,
-  "time":"trial",
+  "time":"night",
   "winner":null,
-  "onTrial":{"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"role":"witch","skip":false,"username":"prini","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+  "watching": "R3g1uZKu8_GrBh8cAAAC",
+  "onTrial": null,
   "messages": [
-    {"message": "uuuuh", "from": "R3g1uZKu8_GrBh8cAAAC"},
-    {"message": "I'm villager for real", "from": "R3g1uZKu8_GrBh8cAAAC"},
-    {"message": "It's poky!!", "from": "R3g1uZKu8_GrBh8cAAAC"},
-    {"message": "She was missing last night", "from": "R3g1uZKu8_GrBh8cAAAC"},
-    {"message": "I swear", "from": "R3g1uZKu8_GrBh8cAAAC"},
+    {"message": "uuuuh", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I'm villager for real", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "It's poky!!", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "She was missing last night", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I swear", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
   ],
 }
 
-module.exports = { trialState, defaultState};
+const nightWitchState = {
+  ws:                 null,
+  mistSettings:       {
+    canvasWidth:      600
+  },
+  user: {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"role":"villager","skip":false,"username":"jiji","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+  "players": [
+    {"id":"zPGaWdfEO1vI2O_aAAAB","isCreator":false,"isDead":false,"isMarked":false,"role":"witch","skip":false,"username":"jiji","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"R3g1uZKu8_GrBh8cAAAC","isCreator":false,"isDead":false,"isMarked":true,"role":"villager","skip":false,"username":"pripribbkitty","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"ei2W9aNW9FFSGZANAAAD","isCreator":false,"isDead":false,"isMarked":false,"role":"villager","skip":false,"username":"pokyCuddleDumplin IV","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]},
+    {"id":"R_2VVCGzEHWX0IDaAAAE","isCreator":true,"isDead":false,"isMarked":false,"role":"villager","skip":false,"username":"jordy","voteFor":null,"trialVote":null,"killVote":[],"ghostVote":[]}
+  ],
+  "prophetText":"Select someone to reveal thier secrets.",
+  "witchText":"Select who shouldn't live any longer.",
+  "dayText":"Select someone who is guilty or choose to skip today.",
+  "lobbyId":"restless-bog-14",
+  "started":true,
+  "time":"night",
+  "winner":null,
+  "watching": null,
+  "onTrial": null,
+  "marking": "ei2W9aNW9FFSGZANAAAD",
+  "messages": [
+    {"message": "uuuuh", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I'm villager for real", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "It's poky!!", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "She was missing last night", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+    {"message": "I swear", "userId": "R3g1uZKu8_GrBh8cAAAC", "username": "pripribbkitty"},
+  ],
+}
+
+module.exports = { trialState, defaultState, nightState, nightWitchState };

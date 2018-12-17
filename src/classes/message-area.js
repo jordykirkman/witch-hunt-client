@@ -5,8 +5,14 @@ module.exports = class MessageArea extends Component {
     this.sendMessage = this.sendMessage.bind(this),
     this.handleMessageChange = this.handleMessageChange.bind(this),
     this.state = {
-      message: null
+      message: ''
     }
+  }
+
+  componentDidMount() {
+    let messageListHeight      = document.querySelector('.message-list').offsetHeight,
+      messageContainer         = document.querySelector('.message-container')
+    messageContainer.scrollTop = messageListHeight - messageContainer.offsetHeight
   }
 
   sendMessage(e){
@@ -23,16 +29,16 @@ module.exports = class MessageArea extends Component {
   }
 
   render() {
-    const chatList = this.props.chat.map((chat) =>
-      <li>{chat.from}: {chat.message}</li>
+    const chatList = this.props.chat.map((message, index) =>
+      <li key={index}><div className="chat-username">{message.username}</div><div className="chat-message">{message.message}</div></li>
     )
     return (
-      <div className="column fadeInUp">
+      <div className="column fadeInUp message-column">
         <div className="message-container">
           <ul className="message-list">{chatList}</ul>
         </div>
         <form onSubmit={this.sendMessage}>
-          <input value={this.state.message} onChange={this.handleMessageChange}/>
+          <input className="message-input" value={this.state.message} placeholder="address ye village" onChange={this.handleMessageChange}/>
         </form>
       </div>
     );

@@ -1,9 +1,3 @@
-// Import Bulma's initial variables
-// @import "../node_modules/bulma/sass/utilities/variables.sass";
-
-// // Override initial variables here
-// // You can add new ones or update existing ones:
-
 $night: #132028; // night
 $day: #FFECA7; // day
 $primary: #a20000;
@@ -19,7 +13,7 @@ $secondary: #6bb3e0;
 // $family-primary: $family-serif; // Use the new serif family
 
 @import "../node_modules/bulma/bulma";
-@import url('https://fonts.googleapis.com/css?family=Overlock+SC');
+@import url("https://fonts.googleapis.com/css?family=Overlock+SC");
 
 //fadeInUp
 @keyframes fadeInUp {
@@ -53,9 +47,13 @@ body {
   background-color: #1f1f1f;
 }
 
+.game-state-icon {
+  padding: 10px 0;
+}
+
 .button.is-primary, .button.is-secondary {
   font-size: 1.5rem;
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   @include box-shadow;
 }
 .button.is-secondary {
@@ -76,6 +74,12 @@ body {
     background-color: solid 2px darken($primary, 10%);
   }
 }
+.button {
+  .voted-mark {
+    width: 30px;
+    height: 30px;
+  }
+}
 
 .error {
   position: fixed;
@@ -88,6 +92,15 @@ body {
   top: 0;
 }
 
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .how-to-play-icon {
+    margin-right: 10px;
+  }
+}
+
 .is-night {
   color: #e5d7b3;
   .title {
@@ -98,7 +111,7 @@ body {
   // background: -moz-linear-gradient(top,  #141a21 0%, #49546d 29%, #404e60 47%, #101214 100%); /* FF3.6-15 */
   // background: -webkit-linear-gradient(top,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* Chrome10-25,Safari5.1-6 */
   // background: linear-gradient(to bottom,  #141a21 0%,#49546d 29%,#404e60 47%,#101214 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#141a21', endColorstr='#101214',GradientType=0 ); /* IE6-9 */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr="#141a21", endColorstr="#101214",GradientType=0 ); /* IE6-9 */
 }
 
 .is-day {
@@ -111,7 +124,7 @@ body {
   // background: -moz-linear-gradient(top,  #fff07f 0%, #fcf3c7 30%, #fcf3c7 42%, #7f611c 100%); /* FF3.6-15 */
   // background: -webkit-linear-gradient(top,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* Chrome10-25,Safari5.1-6 */
   // background: linear-gradient(to bottom,  #fff07f 0%,#fcf3c7 30%,#fcf3c7 42%,#7f611c 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fff07f', endColorstr='#7f611c',GradientType=0 ); /* IE6-9 */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr="#fff07f", endColorstr="#7f611c",GradientType=0 ); /* IE6-9 */
 }
 
 .is-dawn {
@@ -124,7 +137,7 @@ body {
   // background: -moz-linear-gradient(top,  #e0ab8f 0%, #e5d7b3 26%, #dbcfad 38%, #82726a 100%); /* FF3.6-15 */
   // background: -webkit-linear-gradient(top,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* Chrome10-25,Safari5.1-6 */
   // background: linear-gradient(to bottom,  #e0ab8f 0%,#e5d7b3 26%,#dbcfad 38%,#82726a 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e0ab8f', endColorstr='#82726a',GradientType=0 ); /* IE6-9 */
+  // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr="#e0ab8f", endColorstr="#82726a",GradientType=0 ); /* IE6-9 */
 }
 
 .is-trial {
@@ -137,64 +150,6 @@ body {
 
 .input {
   text-transform: uppercase;
-}
-
-.player-card {
-  position: relative;
-  .voted-mark {
-    position: absolute;
-    top: 0;
-    width: 30px;
-    background-color: #333;
-    border-radius: 50%;
-    z-index: 9999;
-    right: 0;
-  }
-}
-
-.info-card-villager, .info-card-prophet, .info-card-witch {
-  // background-image: url('./images/info-card-villager.jpg');
-  border: double;
-  border-color: #f2f2f2;
-  background-color: #000;
-  background-position: center top;
-  @include box-shadow;
-  &.notification {
-    padding: .25rem;
-    .title {
-      font-family: 'Overlock SC', cursive;
-      font-size: 1.25rem;
-      line-height: 20px;
-      text-transform: uppercase;
-      margin-bottom: .25rem;
-      color: #f2f2f2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .subtitle {
-      margin-top: 0;
-      color: #f2f2f2;
-    }
-  }
-  &.is-me {
-    border-color: limegreen;
-  }
-  &.info-card-prophet.is-dawn.is-me {
-    border: solid 1px goldenrod;
-    -webkit-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
-    -moz-box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
-    box-shadow: 0px 0px 10px 0px rgba(255,251,212,1);
-  }
-  &.info-card-witch.is-night.is-me {
-    border: solid 1px darkred;
-    -webkit-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
-    -moz-box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
-    box-shadow: 0px 0px 10px 0px rgba(255,0,0,1);
-  }
-  &.is-dead {
-    background-image: url('./images/info-card-villager-dead.jpg');
-  }
 }
 
 .how-to-play-icon {
@@ -225,16 +180,16 @@ body {
   background-repeat: no-repeat;
   background-size: contain;
   &.bog {
-    background-image: url('./images/bog.png');
+    background-image: url("./images/bog.png");
   }
   &.caves {
-    background-image: url('./images/cave.png');
+    background-image: url("./images/cave.png");
   }
   &.hills {
-    background-image: url('./images/hills.png');
+    background-image: url("./images/hills.png");
   }
   &.ruins {
-    background-image: url('./images/ruins.png');
+    background-image: url("./images/ruins.png");
   }
   &.witches {
     background-color: darkred;
@@ -280,13 +235,13 @@ body {
 }
 
 .instructions {
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   font-size: 1.5rem;
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
 }
 
 .role-instructions {
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   font-size: 1.25rem;
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
   background-color: rgba(0,0,0,0.5);
@@ -295,19 +250,13 @@ body {
 
 .lobby-name {
   font-size: 2rem;
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
-}
-
-.button.leave-lobby {
-  position: absolute;
-  top: 10px;
-  right: 10px;
 }
 
 .player-notification {
   display: flex;
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   align-items: center;
   justify-content: center;
   background-color: rgba(0,0,0, 0.5);
@@ -374,22 +323,79 @@ body {
 .trial-user-name {
   text-transform: uppercase;
   color: #fff;
-  font-family: 'Overlock SC', cursive;
+  font-family: "Overlock SC";
   font-size: 1.5rem;
   text-shadow: 0px 2px 8px #000, 0 0 1.5rem #000;
 }
-.message-container {
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 10px;
-  height: 80px;
-  border: double;
-  background-color: #000;
-  .message-list {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+.message-column {
+  overflow-x: hidden;
+  padding: 0;
+  margin-top: 10px;
+  .message-container {
+    position: relative;
+    overflow-y: scroll;
+    width: 110%;
+    padding-right: 10%;
+    height: 80px;
+    border-bottom: solid 1px #666;
+    background-color: rgba(0,0,0,0.6);
+    .message-list {
+      width: 100%;
+      padding: 10px 0;
+      li {
+        display: flex;
+        .chat-username {
+          padding-left: 10px;
+          opacity: 0.5;
+        }
+        .chat-message {
+          padding: 0 10px 0;
+        }
+      }
+    }
+  }
+  .message-input {
     width: 100%;
+    color: #fff;
+    background-color: #000;
+    border: none;
+    padding: 10px;
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.top-nav {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  .button {
+    margin-left: 10px;
+    &.leave-lobby {
+      background-color: transparent;
+      &.is-night {
+        color: $day;
+        border-color: $day;
+      }
+    }
+  }
+  .timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: solid 1px;
+  }
+}
+
+ul.instructions-list {
+  > li {
+    border-bottom: solid 1px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
   }
 }
 
@@ -412,3 +418,5 @@ body {
 	90% { transform: translate(2px, 2px) rotate(0deg); }
 	100% { transform: translate(1px, -2px) rotate(-1deg); }
 }
+
+@import './player-card';

@@ -1,19 +1,19 @@
-import React, { Component } from 'react';
-import Particle from './classes/particle.js';
-import PlayerCard from './classes/player-card';
-import TrialCard from './classes/trial-card';
-import MessageArea from './classes/message-area';
-import { defaultState } from './state-defaults';
-import './App.css';
+import React,{ Component }  from 'react';
+import Particle             from './classes/particle.js';
+import LobbyLink            from './classes/lobby-link.js';
+import PlayerCard           from './classes/player-card';
+import TrialCard            from './classes/trial-card';
+import GameIcon             from './classes/game-icon';
+import Intro                from './classes/intro';
+import Instructions         from './classes/instructions';
+import MessageArea          from './classes/message-area';
+import { defaultState }     from './state-defaults';
+import io                   from 'socket.io-client';
+import                           './index.scss';
 
 // images
-import sunLogo from './sun.svg';
-import moonLogo from './moon.svg';
-import dawnLogo from './dawn.svg';
-import witchesLogo from './witches.svg';
-import villagersLogo from './villagers.svg';
-import instructionsImage from './images/instructions.png';
-import smokeTexture from './images/smoke_white.png';
+import smokeTexture         from './images/smoke_white.png';
+import checkmark            from './images/checkmark.svg';
 
 // sounds can enable these when theres a native wrapper
 // import door_creak from './sounds/door_creak.mp3'
@@ -36,6 +36,7 @@ class App extends Component {
     this.playerNotification   = this.playerNotification.bind(this)
     this.readyUp              = this.readyUp.bind(this)
     this.skipVote             = this.skipVote.bind(this)
+    this.stayHome             = this.stayHome.bind(this)
     this.joinLobby            = this.joinLobby.bind(this)
     this.leaveLobby           = this.leaveLobby.bind(this)
     this.toggleCreateLobby    = this.toggleCreateLobby.bind(this)
@@ -47,23 +48,37 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const socket = this.state.ws
-    const token = window.sessionStorage.getItem('witch-hunt')
-    const self = this
-    socket.on('connect', function(){
-      if(token){
-        self.handleLobby.call(self, null, token)
+    const socket  = this.state.ws,
+      token       = window.localStorage.getItem('witch-hunt'),
+      self        = this,
+      query       = window.location.search.substring(1),
+      qvars       = query.split("="),
+      qlobbyId    = qvars[1]
+
+    if(qlobbyId){
+      this.setState({joinLobbyId: qlobbyId, create: false})
+    }
+
+    if(token){
+      self.handleLobby(null, null, token)
+    }
+
+    // Update the count down every 1 second
+    let x = setInterval(function() {
+      if(self.state.timer > 0){
+        self.setState({timer: self.state.timer - 1})
       }
-    })
-    let canvas = document.getElementById('canvas')
-    let appContainer = document.getElementById('app')
-    let imageObj = new Image()
-    var particleCount = 20
-    var maxVelocity = 1.5
-    var canvasWidth = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600
-    var canvasHeight = 350
-    let targetFPS = 33
-    let mistSettings = {
+    }, 1000);
+
+    let canvas      = document.getElementById('canvas'),
+      appContainer  = document.getElementById('root'),
+      imageObj      = new Image(),
+      particleCount = 20,
+      maxVelocity   = 1.5,
+      canvasWidth   = appContainer.offsetWidth <= 600 ? appContainer.offsetWidth : 600,
+      canvasHeight  = 350,
+      targetFPS     = 33,
+      mistSettings  = {
       particles:      particles,
       particleCount:  particleCount,
       maxVelocity:    maxVelocity,
@@ -71,14 +86,15 @@ class App extends Component {
       canvasWidth:    canvasWidth,
       canvasHeight:   canvasHeight
     }
+
     this.setState({mistSettings: mistSettings})
 
     // Once the image has been downloaded then set the image on all of the particles
     imageObj.onload = function() {
-        particles.forEach(function(particle) {
-            particle.setImage(imageObj);
-        });
-    };
+      particles.forEach(function(particle) {
+        particle.setImage(imageObj);
+      })
+    }
 
     // Once the callback is arranged then set the source of the image
     imageObj.src = smokeTexture;
@@ -90,35 +106,35 @@ class App extends Component {
 
         // Create the particles and set their initial positions and velocities
         for(var i=0; i < particleCount; ++i){
-            var particle = new Particle(canvasContext, canvasWidth, canvasHeight);
-            
-            // Set the position to be inside the canvas bounds
-            particle.setPosition(this.generateRandom(0, canvasWidth), this.generateRandom(0, canvasHeight));
-            
-            // Set the initial velocity to be either random and either negative or positive
-            particle.setVelocity(this.generateRandom(-maxVelocity, maxVelocity), this.generateRandom(-maxVelocity, maxVelocity));
-            particles.push(particle);
+          var particle = new Particle(canvasContext, canvasWidth, canvasHeight);
+          
+          // Set the position to be inside the canvas bounds
+          particle.setPosition(this.generateRandom(0, canvasWidth), this.generateRandom(0, canvasHeight));
+          
+          // Set the initial velocity to be either random and either negative or positive
+          particle.setVelocity(this.generateRandom(-maxVelocity, maxVelocity), this.generateRandom(-maxVelocity, maxVelocity));
+          particles.push(particle);
         }
     }
 
     if (canvasContext) {
-        setInterval(function() {
-          if(self.state.time !== 'night'){
-            return
-          }
-          // Update the scene befoe drawing
-          self.update();
+      setInterval(function() {
+        if(self.state.time !== 'night'){
+          return
+        }
+        // Update the scene befoe drawing
+        self.update();
 
-          // Draw the scene
-          self.draw();
-        }, 1000 / targetFPS);
+        // Draw the scene
+        self.draw();
+      }, 1000 / targetFPS);
     }
 
   }
 
   // A function to generate a random number between 2 values
   generateRandom(min, max){
-      return Math.random() * (max - min) + min;
+    return Math.random() * (max - min) + min;
   }
 
   // The function to draw the scene
@@ -136,25 +152,27 @@ class App extends Component {
 
   // Update the scene
   update() {
-      particles.forEach(function(particle) {
-          particle.update();
-      });
+    particles.forEach(function(particle) {
+      particle.update();
+    });
   }
 
-  handleLobby(event, token) {
-    const self = this
-    const socket = this.state.ws
+  handleLobby(e, n, token) {
+    const self  = this,
+      socket    = io({transports: ['websocket'], upgrade: false})
+
+    this.setState({ws: socket})
 
     if(token){
-      let lobbyId = JSON.parse(token).lobbyId
-      let userId = JSON.parse(token).userId
+      let lobbyId = JSON.parse(token).lobbyId,
+        userId    = JSON.parse(token).userId
       socket.emit('reconnectClient', {userId: userId, lobbyId: lobbyId})
     }
 
-    socket.on('joined', function(ioEvent){
+socket.on('joined', function(ioEvent){
       self.setState({lobbyId: ioEvent.lobbyId})
       let session = JSON.stringify({lobbyId: ioEvent.lobbyId, userId: ioEvent.userId})
-      window.sessionStorage.setItem('witch-hunt', session);
+      window.localStorage.setItem('witch-hunt', session);
     })
 
     // socket.on('audio', function(ioEvent){
@@ -193,11 +211,12 @@ class App extends Component {
       self.playerNotification.call(this, ioEvent.notification, ioEvent.messageClass)
     })
 
-    socket.on('message', function(ioEvent){
-      let chat = []
-      chat.push(self.state.messages)
-      chat.push(ioEvent)
+    socket.on('propegateMessage', function(ioEvent){
+      let chat = self.state.messages.concat([ioEvent])
       self.setState({messages: chat})
+      let messageListHeight      = document.querySelector('.message-list').offsetHeight,
+        messageContainer         = document.querySelector('.message-container')
+      messageContainer.scrollTop = messageListHeight - messageContainer.offsetHeight
     })
 
     socket.on('errorResponse', function(ioEvent){
@@ -207,9 +226,14 @@ class App extends Component {
       }, 5000)
     })
 
-    socket.on('disconnect', function(){
-
+    socket.on('badToken', function(){
+      window.localStorage.removeItem('witch-hunt')
     })
+
+    socket.on('setTimer', function(ioEvent){
+      self.setState({timer: ioEvent.timer})
+    })
+
   }
 
   toggleCreateLobby(event) {
@@ -226,7 +250,7 @@ class App extends Component {
     this.setState({botCount: event.target.value})
   }
 
-  handleLobbyName() {
+  handleLobbyName(event) {
     let lobbyName = event.target.value.toLowerCase()
     this.setState({joinLobbyId: lobbyName})
   }
@@ -235,7 +259,7 @@ class App extends Component {
     // setting the leaveCurrentLobby var allows us to easilly have a confirmation message
     if(this.state.leaveCurrentLobby){
       this.setState({leaveCurrentLobby: false})
-      window.sessionStorage.removeItem('witch-hunt')
+      window.localStorage.removeItem('witch-hunt')
       this.state.ws.emit('leaveLobby', {lobbyId: this.state.lobbyId})
       return
     }
@@ -244,6 +268,10 @@ class App extends Component {
 
   skipVote() {
     this.state.ws.emit('submitVote', {skip: true, lobbyId: this.state.lobbyId, from: this.state.user.id})
+  }
+
+  stayHome() {
+    this.state.ws.emit('watch', {skip: true, lobbyId: this.state.lobbyId, from: this.state.user.id})
   }
 
   readyUp() {
@@ -285,16 +313,25 @@ class App extends Component {
       return player.skip
     })
 
-    let playerCardList = this.state.players.map(function(player){
-      return <PlayerCard time={self.state.time} ready={self.state.started} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} user={self.state.user} />
+    let playerCardList = this.state.players.map(function(player, index){
+      return <PlayerCard key={index} time={self.state.time} ready={self.state.started} winner={self.state.winner} ws={self.state.ws} lobbyId={self.state.lobbyId} player={player} watching={self.state.watching} marking={self.state.marking} user={self.state.user} />
     })
 
     let intro = <div className="columns">
       <div className="column">
         {this.state.started && this.state.time === 'day' &&
           <div>
-            <h3>{skippedPlayers.length.toString()} votes to skip</h3>
             <a className="button is-primary" onClick={this.skipVote}>Skip</a>
+          </div>
+        }
+        {this.state.started && this.state.time === 'night' &&
+          <div>
+            <a className="button is-primary" onClick={this.stayHome}>
+              Stay Home
+              {this.state.watching === 'skip' &&
+                <img className="voted-mark" src={checkmark}/>
+              }
+            </a>
           </div>
         }
       </div>
@@ -326,38 +363,27 @@ class App extends Component {
               <div className="field">
                 <label className="label">Name</label>
                 <p className="control">
-                  <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.username} onChange={this.handleNameChange}/>
+                  <input className="input" type="text" placeholder="Your Name" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" value={this.state.username} onChange={this.handleNameChange}/>
+                  <input className="number" type="text" value={this.state.botCount} onChange={this.handleBotCount}/>
                 </p>
               </div>
               {!this.state.create &&
                 <div className="field">
                   <label className="label">Game Name</label>
                   <p className="control">
-                    <input className="input" type="text" placeholder="Lobby Id" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellcheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
+                    <input className="input" type="text" placeholder="Lobby Id" autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" value={this.state.joinLobbyId} onChange={this.handleLobbyName}/>
                   </p>
                 </div>
               }
               <div className="field">
                 <p className="control">
-                  <input className="button is-primary" type="submit" value="Submit" onClick={this.handleLobby}/>
+                  <input className="button is-primary" type="submit" value={`${this.state.create ? "Create Game" : "Join"}`} onClick={this.handleLobby}/>
                 </p>
               </div>
             </form>
           </div>
         </div>
       </div>
-    }
-
-    let gameIcon = witchesLogo
-    if(this.state.winner === 'villagers'){
-      gameIcon = villagersLogo
-    }
-    let timeIcon = dawnLogo
-    if(this.state.time === 'day'){
-      timeIcon = sunLogo
-    }
-    if(this.state.time === 'night'){
-      timeIcon = moonLogo
     }
 
     let startText = !this.state.user.isCreator ? 'waiting for host to start' : this.state.players.length.toString() + ' villagers ready'
@@ -378,53 +404,25 @@ class App extends Component {
               {this.state.error}
             </div>
           }
-          {this.state.lobbyId &&
-            <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
-          }
-          <div className="column">
-            {this.state.winner &&
-              <div className="game-state-icon">
-                <img src={gameIcon} className="App-logo winner" alt={`${this.state.time}`} />
-                <h2>{this.state.winner}</h2>
-              </div>
-            }
-            {!this.state.winner && this.state.lobbyId &&
-              <div className="game-state-icon">
-                <img src={timeIcon} className="App-logo time-icon" alt={`${this.state.time}`} />
-              </div>
-            }
-            {!this.state.lobbyId &&
-              <div>
-                <div className="lobby-name">
-                  Witch Hunt
-                  <img className="how-to-play-image" src={instructionsImage} alt="Witch hunt how-to-play"/>
-                </div>
-                <div className="columns">
-                  <div className='column is-third'>
-                    <img src={dawnLogo} className="how-to-play-icon" alt="witch hunt dawn" />
-                    <h4 className="title is-4">
-                      Dawn
-                    </h4>
-                    The Prophet chooses a player and sees their true identity to warn the village. 20% chance to fail.
-                  </div>
-                  <div className='column is-third'>
-                    <img src={sunLogo} className="how-to-play-icon" alt="witch hunt day" />
-                    <h4 className="title is-4">
-                      Day
-                    </h4>
-                    The village members identify the guilty who is then put to death. 20% chance the player survives.
-                  </div>
-                  <div className='column is-third'>
-                    <img src={moonLogo} className="how-to-play-icon" alt="witch hunt night" />
-                    <h4 className="title is-4">
-                      Night
-                    </h4>
-                    The hiding monster chooses a victim. 20% chance the victim survives.
-                  </div>
-                </div>
+          <div className="top-nav">
+            {this.state.timer > 0 &&
+              <div className="timer">
+                {this.state.timer}s
               </div>
             }
             {this.state.lobbyId &&
+              <button className={`button leave-lobby is-${this.state.time}`} onClick={this.leaveLobby}>{this.state.leaveCurrentLobby ? 'Sure?' : 'Leave Game'}</button>
+            }
+            {this.state.lobbyId && !this.state.started &&
+              <LobbyLink time={this.state.time} lobbyId={this.state.lobbyId}/>
+            }
+          </div>
+          <div className="column">
+            <GameIcon winner={this.state.winner} time={this.state.time} lobbyId={this.state.lobbyId}/>
+            {!this.state.lobbyId &&
+              <Intro />
+            }
+            {this.state.lobbyId && !this.state.started &&
               <div className="lobby-name">{this.state.lobbyId}</div>
             }
             {this.state.started === false && this.state.user.isCreator && this.state.players.length >= 4 && !this.state.winner &&
@@ -433,25 +431,12 @@ class App extends Component {
             {this.state.user.isCreator && this.state.players.length >= 4 && this.state.winner &&
               <button className="button is-primary" onClick={this.readyUp}>Play again</button>
             }
-            <div className="instructions">{this.state.instructions}</div>
-            {this.state.time === "dawn" && this.state.user.role === "prophet" &&
-              <div className="role-instructions">{this.state.prophetText}</div>
+            <Instructions started={this.state.started} time={this.state.time} user={this.state.user} dayText={this.state.dayText} witchText={this.state.witchText} villagerText={this.state.villagerText}/>
+            {this.state.lobbyId &&
+              <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
-            {this.state.time === "night" && this.state.user.role === "witch" &&
-              <div className="role-instructions">{this.state.witchText}</div>
-            }
-            {this.state.time === "day" &&
-              <div className="role-instructions">{this.state.dayText}</div>
-            }
-            {this.state.time === "trial" &&
-              <div>
-              {this.state.onTrial.id === this.state.user.id &&
-                <MessageArea user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
-              }
-              {this.state.onTrial.id !== this.state.user.id &&
-                <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId} players={this.state.players}/>
-              }
-              </div>
+            {this.state.time === "trial" && this.state.onTrial.id !== this.state.user.id && !this.state.winner &&
+              <TrialCard onTrial={this.state.onTrial} user={this.state.user} chat={this.state.messages} ws={this.state.ws} lobbyId={this.state.lobbyId}/>
             }
             {!this.state.started && this.state.lobbyId &&
               <h3>

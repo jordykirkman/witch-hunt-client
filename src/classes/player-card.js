@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
-import checkmark from '../images/checkmark.svg';
+import checkmark            from '../images/checkmark.svg';
+import eye                  from '../images/eye.svg';
+import pentagram              from '../images/pentagram.svg';
 module.exports = class PlayerCard extends React.Component {
   constructor(props) {
     super(props)
@@ -20,8 +22,8 @@ module.exports = class PlayerCard extends React.Component {
       return
     }
     // reveal a role if it's dawn and you are a prophet
-    if(this.props.time === 'dawn' && this.props.player.id !== this.props.user.id && this.props.user.role === 'prophet'){
-      this.props.ws.emit('reveal', {user: this.props.player.id, lobbyId: this.props.lobbyId, from: this.props.user})
+    if(this.props.time === 'night' && this.props.player.id !== this.props.user.id && this.props.user.role === 'villager'){
+      this.props.ws.emit('watch', {user: this.props.player.id, lobbyId: this.props.lobbyId})
     }
     // send a kill/unkill vote if it's day
     if(this.props.time === 'day'){
@@ -33,22 +35,30 @@ module.exports = class PlayerCard extends React.Component {
     let myCard      = this.props.player.id === this.props.user.id,
       myCardClass   = myCard ? 'is-me' : '',
       myMarkedClass = this.props.player.isMarked ? 'is-marked' : '',
+      witches       = this.props.player.role === "witch" && this.props.user.role === "witch",
       myDeadClass   = this.props.player.isDead ? 'is-dead' : 'is-alive'
 
     let voted       = this.props.player.voteFor || this.props.player.trialVote ? <img className="voted-mark" src={checkmark}/> : '',
-      fontSize      = this.props.player.username.length < 7 ? '1.25rem' : `${220 / this.props.player.username.length}px`
+      watching      = this.props.watching === this.props.player.id ? <img className="watching-mark" src={eye}/> : '',
+      marking       = this.props.marking === this.props.player.id ? <img className="marking-mark" src={pentagram}/> : '',
+      fontSize      = '1rem'
+
+    if(this.props.player.username){
+      fontSize      = this.props.player.username.length < 10 ? '1rem' : `${220 / this.props.player.username.length}px`
+    }
 
     return (
       <div className="player-card column is-half-mobile is-one-third-tablet is-one-third-desktop fadeInUp" onClick={this.handleVote}>
-        {voted}
-        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} is-${this.props.time}`}>
+        <div className="marks-section">
+          {voted}
+          {watching}
+          {marking}
+        </div>
+        <div className={`notification info-card ${myCardClass} info-card-${this.props.player.role} ${myDeadClass} ${myMarkedClass} is-${this.props.time}`}>
           <div className="title" style={{fontSize: fontSize}}>{myCard ? '(you)' : ''}{this.props.player.username}</div>
           <div className="subtitle">
             <div className="player-role">
-              {this.props.player.isDead ? this.props.player.role : `${myCard ? this.props.player.role : '???'}`}
-            </div>
-            <div className="vote-count">
-              {this.props.player.isDead ? 'Killed' : this.props.player.killVote.length.toString()}
+              {this.props.player.isDead || this.props.winner ? this.props.player.role : `${myCard || witches ? this.props.player.role : '???'}`}
             </div>
           </div>
         </div>
